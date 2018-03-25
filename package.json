@@ -1,0 +1,31 @@
+{
+  "name": "my-video-game-collection",
+  "version": "1.0.0",
+  "description": "A web application which allows users to showcase their video game collections.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "watch": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eerojala/My-video-game-collection.git"
+  },
+  "author": "Eero Ojala",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eerojala/My-video-game-collection/issues"
+  },
+  "homepage": "https://github.com/eerojala/My-video-game-collection#readme",
+  "dependencies": {
+    "cors": "^2.8.4",
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "mongoose": "^5.0.11",
+    "npm": "^5.8.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.2"
+  }
+}
