@@ -1,14 +1,6 @@
 const platformsRouter = require('express').Router()
 const Platform = require('../models/platform')
 
-const isPlatformValid = (platform) => {
-    if (!platform.name || !platform.creator || isNaN(platform.year) || !platform.number) {
-        return false
-    }
-
-    return true
-}
-
 platformsRouter.get('/', async (request, response) => {
     const platforms = await Platform
         .find({})
@@ -38,7 +30,7 @@ platformsRouter.post('/', async (request, response) => {
     try {
         const platform = new Platform(request.body)
 
-        if (!isPlatformValid(platform)) {
+        if (platform.validateSync().length > 0) {
             console.log(platform)
             return response.status(404).json({ error: 'Invalid parameters' })
         }
@@ -55,17 +47,24 @@ platformsRouter.post('/', async (request, response) => {
 platformsRouter.put('/:id', async (request, response) => {
     try {
         const body = request.body
-        const platform = {
-            name: body.name,
-            creator: body.creator,
-            year: body.year
+        const platform = await Platform.findById(request.params.id)
+
+        if (!platform) {
+            response.status(404).end()
         }
 
-        if (isPlatformValid) {
-            const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, platform, { new: true })
+        const newPlatform = {
+            name: body.name,
+            creator: body.creator,
+            year: body.year,
+            games: platform.games
+        }
+
+        if (newPlatform.validateSync().length === 0) {
+            const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true })
             response.json(Platform.format(updatedPlatform))
         } else {
-            response.status(404).send({ error: 'Invalid parameters' })
+            response.status(400).send({ error: 'Invalid parameters' })
         }
     } catch (exception) {
         console.log(exception)
@@ -75,14 +74,12 @@ platformsRouter.put('/:id', async (request, response) => {
 
 platformsRouter.delete(':/id', async (request, response) => {
     try {
-        const platform = await Platform.findById(request.params.id)
-
         await Platform.findByIdAndRemove(request.params.id)
 
         response.status(204).end()
     } catch (exception) {
-        respons.status(400).json({ error: 'Error, something went wrong' })
+        response.status(400).json({ error: 'Error, something went wrong' })
     }
 })
 
-module.exports = platformRouter
+module.exports = platformsRouter

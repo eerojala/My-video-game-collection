@@ -1,10 +1,19 @@
 const mongoose = require('mongoose')
 
 const gameSchema = new mongoose.Schema({
-    name: String,
+    name: {
+        type: String,
+        required: true
+    },
     platform: { type: mongoose.Schema.Types.ObjectId, ref: 'Platform' },
-    year: Number,
-    developer: String,
+    year: {
+        type: Number,
+        required: true
+    },
+    developer: {
+        type: String,
+        required: true
+    },
     publisher: String
 })
 
