@@ -59,11 +59,11 @@ gamesRouter.put('/:id', async (request, response) => {
     try {
         const body = request.body
         const newGame = {
-            name = body.name,
-            platform = body.platform,
-            year = body.year,
-            developer = body.developer,
-            publisher = body.publisher
+            name: body.name,
+            platform: body.platform,
+            year: body.year,
+            developer: body.developer,
+            publisher: body.publisher
         }
 
         if (newGame.validateSync().length === 0) {

@@ -3,7 +3,10 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const mongoose = require('mongoose')
+
 const middleware = require('./utils/middleware')
+const platformsRouter = require('./controllers/platforms')
+const gamesRouter = require('./controllers/games')
 
 const app = express()
 const config = require('./utils/config')
@@ -26,9 +29,11 @@ app.use(express.static('build'))
 app.use(middleware.logger)
 
 // Controllers
+app.use('/api/platforms', platformsRouter)
+app.use('/api/games', gamesRouter)
 
 // Error middleware
-app.use(middleware)
+app.use(middleware.error)
 
 const server = http.createServer(app)
 
