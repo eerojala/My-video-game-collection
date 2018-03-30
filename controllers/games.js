@@ -5,7 +5,7 @@ const Platform = require('../models/platform')
 gamesRouter.get('/', async (request, response) => {
     const games = await Game
         .find({})
-        .populate('platform', { __v:0, games: 0 })
+        .populate('platform', { name: 1 })
 
     response.json(games.map(Game.format))
 })
@@ -30,11 +30,8 @@ gamesRouter.get('/:id', async (request, response) => {
 gamesRouter.post('/', async (request, response) => {
     try {
         const game = new Game(request.body)
+        console.log("xxxxxxxxxxxxxxxxxxxxxxx")
         console.log(game)
-
-        if (game.validateSync().length > 0) {
-            response.status(400).json({ error: 'Invalid parameters' })
-        }
 
         const platform = await Platform.findById(game.platform)
 

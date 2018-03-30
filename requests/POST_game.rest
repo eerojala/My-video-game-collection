@@ -1,0 +1,10 @@
+POST http://localhost:3001/api/games
+content-type: application/json
+
+{
+    "name": "Crash Bandicoot",
+    "platform": "5abe623a2da39c254c3c45ce",
+    "year": "1996",
+    "developer": "Naughty Dog",
+    "publisher": "Sony Computer Entertainment"
+}

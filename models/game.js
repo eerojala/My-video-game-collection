@@ -21,6 +21,7 @@ gameSchema.statics.format = (game) => {
     return {
         id: game.id,
         name: game.name,
+        platform: game.platform,
         year: game.year,
         developer: game.developer,
         publisher: game.publisher

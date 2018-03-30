@@ -1,0 +1,8 @@
+POST http://localhost:3001/api/platforms
+content-type: application/json
+
+{
+    "name": "1",
+    "creator": "Sony Computer Entertainment",
+    "year": "1994"
+}

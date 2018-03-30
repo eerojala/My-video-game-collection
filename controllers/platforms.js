@@ -29,12 +29,7 @@ platformsRouter.get('/:id', async (request, response) => {
 platformsRouter.post('/', async (request, response) => {
     try {
         const platform = new Platform(request.body)
-
-        if (platform.validateSync().length > 0) {
-            console.log(platform)
-            return response.status(404).json({ error: 'Invalid parameters' })
-        }
-
+        
         await platform.save()
 
         response.json(Platform.format(platform))
