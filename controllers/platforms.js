@@ -13,7 +13,7 @@ platformsRouter.get('/:id', async (request, response) => {
     try {
         const platform = await Platform
             .findById(request.params.id)
-            .populate('games', { _v: 0, platform: 0 })
+            .populate('games', { __v: 0, platform: 0 })
 
         if (platform) {
             response.json(Platform.format(platform))

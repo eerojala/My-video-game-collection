@@ -30,7 +30,6 @@ gamesRouter.get('/:id', async (request, response) => {
 gamesRouter.post('/', async (request, response) => {
     try {
         const game = new Game(request.body)
-        console.log("xxxxxxxxxxxxxxxxxxxxxxx")
         console.log(game)
 
         const platform = await Platform.findById(game.platform)

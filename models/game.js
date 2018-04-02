@@ -5,7 +5,10 @@ const gameSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    platform: { type: mongoose.Schema.Types.ObjectId, ref: 'Platform' },
+    platform: { 
+        type: mongoose.Schema.Types.ObjectId, ref: 'Platform',
+        required: true
+    },
     year: {
         type: Number,
         required: true
