@@ -61,6 +61,25 @@ describe('When there are initially some platforms saved', async () => {
     })
 
     describe('POST /api/platforms', async() => {
+        let invalidParamteterPostTest
+
+        beforeAll(async () => {
+            invalidParameterPostTest = async (data) => {
+                const platformsBeforePost = await platformsInDb()
+
+                const response = await api
+                    .post('/api/platforms')
+                    .send(data)
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+        
+                const platformsAfterPost = await platformsInDb()
+
+                expect(response.body.error).toBe('Invalid parameters')
+                expect(platformsBeforePost).toEqual(platformsAfterPost)
+            }
+        })
+
         test('succeeds with valid data', async () => {
             const platformsBeforePost = await platformsInDb()
 
@@ -83,22 +102,12 @@ describe('When there are initially some platforms saved', async () => {
             expect(years).toContain(newPlatform.year)
         })
 
-        test('fails with an empty name', async () => {
-            const platformsBeforePost = await platformsInDb()
+        // test('fails with an empty name', async () => {
+        //     const invalidPlatform = newPlatform
+        //     invalidPlatform.name = ""
     
-            const invalidPlatform = newPlatform
-            invalidPlatform.name = ""
-    
-            await api
-                .post('/api/platforms')
-                .send(invalidPlatform)
-                .expect(500)
-                .expect('Content-type', /application\/json/)
-    
-            const platformsAfterPost = await platformsInDb()
-    
-            expect(platformsBeforePost).toEqual(platformsAfterPost)
-        })
+        //     invalidParameterPostTest(invalidPlatform)
+        // })
     
         test('fails with an empty creator', async () => {
             const platformsBeforePost = await platformsInDb()
@@ -136,7 +145,7 @@ describe('When there are initially some platforms saved', async () => {
     })
 
     describe('PUT /api/platforms/:id', async () => {
-        let updatesToPlatform, invalidParameterUpdateTest
+        let updatesToPlatform, invalidParameterPutTest
         
         beforeAll(async () => {
             updatesToPlatform = {
@@ -146,7 +155,7 @@ describe('When there are initially some platforms saved', async () => {
                 games: []
             }
 
-            invalidParameterUpdateTest = async (data) => {
+            invalidParameterPutTest = async (data) => {
                 const platformsBeforePut = await platformsInDb()
     
                 const response = await api
@@ -207,24 +216,36 @@ describe('When there are initially some platforms saved', async () => {
         })
 
         test('fails with an empty name', async() => {
-            const invalidUpdate = updatesToPlatform
-            invalidUpdate.name = ''
+            const emptyName = {
+                name: '',
+                creator: 'Nintendo',
+                year: 1983,
+                games: []
+            }
 
-            await invalidParameterUpdateTest(invalidUpdate)
+            await invalidParameterPutTest(emptyName)
         })
 
         test('fails with an empty creator', async() => {      
-            const invalidUpdate = updatesToPlatform
-            invalidUpdate.creator = ''
+            const emptyCreator = {
+                name: 'Nintendo Entertainment System',
+                creator: '',
+                year: 1983,
+                games: []
+            }
 
-            await invalidParameterUpdateTest(invalidUpdate)
+            await invalidParameterPutTest(emptyCreator)
         })
 
         test('fails with an invalid year', async() => {
-            const invalidUpdate = updatesToPlatform
-            invalidUpdate.year = 'year'
+            const invalidYear = {
+                name: 'Nintendo Entertainment System',
+                creator: 'Nintendo',
+                year: 'year',
+                games: []
+            }
 
-            await invalidParameterUpdateTest(invalidUpdate)
+            await invalidParameterPutTest(invalidYear)
         })
     })
 

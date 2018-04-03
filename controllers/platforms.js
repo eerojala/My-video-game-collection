@@ -36,7 +36,12 @@ platformsRouter.post('/', async (request, response) => {
         response.json(Platform.format(platform))
     } catch (exception) {
         print(exception)
-        response.status(500).json({ error: 'Something went wrong...' })
+
+        if (exception.name === 'ValidatorError' || exception.name === 'CastError') {
+            response.status(400).json({ error: 'Invalid parameters' })
+        } else {
+            response.status(500).json({ error: 'Something went wrong...' })
+        }
     }
 })
 
@@ -49,10 +54,6 @@ platformsRouter.put('/:id', async (request, response) => {
             return response.status(404).json({ error: 'No platform found matching id' })
         }
 
-        if (body.name === '' || body.creator === '') {
-            return response.status(400).json({ error: 'Invalid parameters' })
-        }
-
         const newPlatform = {
             name: body.name,
             creator: body.creator,
@@ -60,12 +61,12 @@ platformsRouter.put('/:id', async (request, response) => {
             games: platform.games
         }
 
-        const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true })
+        const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true, runValidators: true })
         response.json(Platform.format(updatedPlatform))
     } catch (exception) {
-        print(exception)
+        console.log(exception)
 
-        if (exception.name === 'CastError') {
+        if (exception._message === 'Validation failed' || exception.name === 'CastError') {
             response.status(400).json({ error: 'Invalid parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })

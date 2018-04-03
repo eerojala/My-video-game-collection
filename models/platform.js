@@ -3,10 +3,12 @@ const mongoose = require('mongoose')
 const platformSchema = new mongoose.Schema({
     name: {
         type: String,
+        minlength: 1,
         required: true
     },
     creator: {
         type: String,
+        minlength: 1,
         required: true
     },
     year: {
