@@ -99,10 +99,17 @@ const addGamesToPlatforms = async () => {
 
     await Promise.all(promiseArray)
 }
+
+const newPlatform = {
+    name: 'Dreamcast',
+    creator: 'Sega',
+    year: 1998
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
     nonExistingId,
     platformsInDb,
-    gamesInDb
+    gamesInDb,
+    newPlatform
 }

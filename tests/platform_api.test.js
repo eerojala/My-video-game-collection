@@ -1,7 +1,7 @@
 const supertest = require('supertest')
 const { app, server } = require('../index')
 const Platform = require('../models/platform')
-const { saveInitialPlatformsAndGames, nonExistingId, platformsInDb } = require('../utils/test_helper')
+const { saveInitialPlatformsAndGames, nonExistingId, platformsInDb, newPlatform } = require('../utils/test_helper')
 
 const api = supertest(app)
 
@@ -59,6 +59,78 @@ describe('When there are initially some platforms saved', async () => {
         })
     })
 
+    describe('POST /api/platforms', async() => {
+        test('succeeds with valid data', async () => {
+            const platformsBeforePost = await platformsInDb()
+
+            await api   
+                .post('/api/platforms')
+                .send(newPlatform)
+                .expect(200)
+                .expect('Content-type', /application\/json/)
+
+            const platformsAfterPost = await platformsInDb()
+
+            expect(platformsAfterPost).toHaveLength(platformsBeforePost.length + 1)
+            
+            const names = platformsAfterPost.map(platform => platform.name)
+            const creators = platformsAfterPost.map(platform => platform.creator)
+            const years = platformsAfterPost.map(platform => platform.year)
+
+            expect(names).toContain(newPlatform.name)
+            expect(creators).toContain(newPlatform.creator)
+            expect(years).toContain(newPlatform.year)
+        })
+
+        test('fails with an empty name', async () => {
+            const platformsBeforePost = await platformsInDb()
+    
+            const invalidPlatform = newPlatform
+            invalidPlatform.name = ""
+    
+            await api
+                .post('/api/platforms')
+                .send(invalidPlatform)
+                .expect(500)
+    
+            const platformsAfterPost = await platformsInDb()
+    
+            expect(platformsBeforePost).toEqual(platformsAfterPost)
+        })
+    
+        test('fails with an empty creator', async () => {
+            const platformsBeforePost = await platformsInDb()
+    
+            const invalidPlatform = newPlatform
+            invalidPlatform.creator = ""
+    
+            await api
+                .post('/api/platforms')
+                .send(invalidPlatform)
+                .expect(500)
+    
+            const platformsAfterPost = await platformsInDb()
+    
+            expect(platformsBeforePost).toEqual(platformsAfterPost)
+        })
+    
+        test ('fails with a non-number year', async () => {
+            const platformsBeforePost = await platformsInDb()
+    
+            const invalidPlatform = newPlatform
+            invalidPlatform.year = "year"
+    
+            await api
+                .post('/api/platforms')
+                .send(invalidPlatform)
+                .expect(500)
+    
+            const platformsAfterPost = await platformsInDb()
+    
+            expect(platformsBeforePost).toEqual(platformsAfterPost)
+        })
+    })
+    
     afterAll(() => {
         server.close()
     })
