@@ -23,7 +23,7 @@ platformsRouter.get('/:id', async (request, response) => {
         }
     } catch (exception) {
         print(exception)
-        response.status(400).send({ error: 'Malformatted id' })
+        response.status(400).json({ error: 'Malformatted id' })
     }
 })
 
@@ -46,7 +46,11 @@ platformsRouter.put('/:id', async (request, response) => {
         const platform = await Platform.findById(request.params.id)
 
         if (!platform) {
-            response.status(404).end()
+            return response.status(404).json({ error: 'No platform found matching id' })
+        }
+
+        if (body.name === '' || body.creator === '') {
+            return response.status(400).json({ error: 'Invalid parameters' })
         }
 
         const newPlatform = {
@@ -56,15 +60,16 @@ platformsRouter.put('/:id', async (request, response) => {
             games: platform.games
         }
 
-        if (newPlatform.validateSync().length === 0) {
-            const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true })
-            response.json(Platform.format(updatedPlatform))
-        } else {
-            response.status(400).send({ error: 'Invalid parameters' })
-        }
+        const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true })
+        response.json(Platform.format(updatedPlatform))
     } catch (exception) {
         print(exception)
-        response.status(400).send({ error: 'Malformatted id' })
+
+        if (exception.name === 'CastError') {
+            response.status(400).json({ error: 'Invalid parameters' })
+        } else {
+            response.status(500).json({ error: 'Something went wrong...' })
+        }
     }
 })
 
