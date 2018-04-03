@@ -35,8 +35,12 @@ const initialGames = [
     }
 ]
 
-const nonExistingPlatformId = async () => {
-    const platform = new Platform()
+const nonExistingId = async () => {
+    const platform = new Platform({
+        name: 'Xbox',
+        creator: 'Microsoft',
+        year: 2001
+    })
 
     await platform.save()
     await platform.remove()
@@ -98,7 +102,7 @@ const addGamesToPlatforms = async () => {
  
 module.exports = {
     saveInitialPlatformsAndGames,
-    nonExistingPlatformId,
+    nonExistingId,
     platformsInDb,
     gamesInDb
 }
