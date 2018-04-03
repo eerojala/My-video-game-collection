@@ -64,7 +64,7 @@ platformsRouter.put('/:id', async (request, response) => {
         const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true, runValidators: true })
         response.json(Platform.format(updatedPlatform))
     } catch (exception) {
-        console.log(exception)
+        print(exception)
 
         if (exception._message === 'Validation failed' || exception.name === 'CastError') {
             response.status(400).json({ error: 'Invalid parameters' })

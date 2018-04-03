@@ -216,34 +216,22 @@ describe('When there are initially some platforms saved', async () => {
         })
 
         test('fails with an empty name', async() => {
-            const emptyName = {
-                name: '',
-                creator: 'Nintendo',
-                year: 1983,
-                games: []
-            }
+            const emptyName = Object.assign({}, updatesToPlatform)
+            emptyName.name = ''
 
             await invalidParameterPutTest(emptyName)
         })
 
         test('fails with an empty creator', async() => {      
-            const emptyCreator = {
-                name: 'Nintendo Entertainment System',
-                creator: '',
-                year: 1983,
-                games: []
-            }
+            const emptyCreator = Object.assign({}, updatesToPlatform)
+            emptyCreator.creator = ''
 
             await invalidParameterPutTest(emptyCreator)
         })
 
         test('fails with an invalid year', async() => {
-            const invalidYear = {
-                name: 'Nintendo Entertainment System',
-                creator: 'Nintendo',
-                year: 'year',
-                games: []
-            }
+            const invalidYear = Object.assign({}, updatesToPlatform)
+            invalidYear.year = 'year'
 
             await invalidParameterPutTest(invalidYear)
         })
