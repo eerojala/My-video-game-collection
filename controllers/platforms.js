@@ -1,5 +1,6 @@
 const platformsRouter = require('express').Router()
 const Platform = require('../models/platform')
+const print = require('../utils/print')
 
 platformsRouter.get('/', async (request, response) => {
     const platforms = await Platform
@@ -21,7 +22,7 @@ platformsRouter.get('/:id', async (request, response) => {
             response.status(404).end()
         }
     } catch (exception) {
-        console.log(exception)
+        print(exception)
         response.status(400).send({ error: 'Malformatted id' })
     }
 })
@@ -34,7 +35,7 @@ platformsRouter.post('/', async (request, response) => {
 
         response.json(Platform.format(platform))
     } catch (exception) {
-        console.log(exception)
+        print(exception)
         response.status(500).json({ error: 'Something went wrong...' })
     }
 })
@@ -62,7 +63,7 @@ platformsRouter.put('/:id', async (request, response) => {
             response.status(400).send({ error: 'Invalid parameters' })
         }
     } catch (exception) {
-        console.log(exception)
+        print(exception)
         response.status(400).send({ error: 'Malformatted id' })
     }
 })
@@ -73,6 +74,7 @@ platformsRouter.delete(':/id', async (request, response) => {
 
         response.status(204).end()
     } catch (exception) {
+        print(exception)
         response.status(400).json({ error: 'Error, something went wrong' })
     }
 })

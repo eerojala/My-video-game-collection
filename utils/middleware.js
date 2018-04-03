@@ -1,8 +1,10 @@
+const print = require('./print')
+
 const logger = (request, response, next) => {
-    console.log('Method: ', request.method)
-    console.log('Path:   ', request.path)
-    console.log('Body:   ', request.body)
-    console.log('--------------')
+    print(`Method: ${request.method}`)
+    print(`Path: ${request.path}`)
+    print(`Body: ${request.body}`)
+    print(`--------------`)
     next()
 }
 
