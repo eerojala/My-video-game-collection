@@ -102,45 +102,25 @@ describe('When there are initially some platforms saved', async () => {
             expect(years).toContain(newPlatform.year)
         })
 
-        // test('fails with an empty name', async () => {
-        //     const invalidPlatform = newPlatform
-        //     invalidPlatform.name = ""
+        test('fails with an empty name', async () => {
+            const emptyNamePost = Object.assign({}, newPlatform)
+            emptyNamePost.name = ""
     
-        //     invalidParameterPostTest(invalidPlatform)
-        // })
+            await invalidParameterPostTest(emptyNamePost)
+        })
     
         test('fails with an empty creator', async () => {
-            const platformsBeforePost = await platformsInDb()
+            const emptyCreatorPost = Object.assign({}, newPlatform)
+            emptyCreatorPost.creator = ""
     
-            const invalidPlatform = newPlatform
-            invalidPlatform.creator = ""
-    
-            await api
-                .post('/api/platforms')
-                .send(invalidPlatform)
-                .expect(500)
-                .expect('Content-type', /application\/json/)
-    
-            const platformsAfterPost = await platformsInDb()
-    
-            expect(platformsBeforePost).toEqual(platformsAfterPost)
+            await invalidParameterPostTest(emptyCreatorPost)
         })
     
         test ('fails with an invalid year', async () => {
-            const platformsBeforePost = await platformsInDb()
-    
-            const invalidPlatform = newPlatform
-            invalidPlatform.year = "year"
-    
-            await api
-                .post('/api/platforms')
-                .send(invalidPlatform)
-                .expect(500)
-                .expect('Content-type', /application\/json/)
-    
-            const platformsAfterPost = await platformsInDb()
-    
-            expect(platformsBeforePost).toEqual(platformsAfterPost)
+            const invalidYearPost = Object.assign({}, newPlatform)
+            invalidYearPost.year = "year"
+            
+            await invalidParameterPostTest(invalidYearPost)
         })
     })
 
@@ -216,24 +196,24 @@ describe('When there are initially some platforms saved', async () => {
         })
 
         test('fails with an empty name', async() => {
-            const emptyName = Object.assign({}, updatesToPlatform)
-            emptyName.name = ''
+            const emptyNamePut = Object.assign({}, updatesToPlatform)
+            emptyNamePut.name = ''
 
-            await invalidParameterPutTest(emptyName)
+            await invalidParameterPutTest(emptyNamePut)
         })
 
         test('fails with an empty creator', async() => {      
-            const emptyCreator = Object.assign({}, updatesToPlatform)
-            emptyCreator.creator = ''
+            const emptyCreatorPut = Object.assign({}, updatesToPlatform)
+            emptyCreatorPut.creator = ''
 
-            await invalidParameterPutTest(emptyCreator)
+            await invalidParameterPutTest(emptyCreatorPut)
         })
 
         test('fails with an invalid year', async() => {
-            const invalidYear = Object.assign({}, updatesToPlatform)
-            invalidYear.year = 'year'
+            const invalidYearPut = Object.assign({}, updatesToPlatform)
+            invalidYearPut.year = 'year'
 
-            await invalidParameterPutTest(invalidYear)
+            await invalidParameterPutTest(invalidYearPut)
         })
     })
 
