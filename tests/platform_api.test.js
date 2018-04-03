@@ -118,7 +118,7 @@ describe('When there are initially some platforms saved', async () => {
     
         test ('fails with an invalid year', async () => {
             const invalidYearPost = Object.assign({}, newPlatform)
-            invalidYearPost.year = "year"
+            invalidYearPost.year = 1778.5
             
             await invalidParameterPostTest(invalidYearPost)
         })
@@ -211,7 +211,7 @@ describe('When there are initially some platforms saved', async () => {
 
         test('fails with an invalid year', async() => {
             const invalidYearPut = Object.assign({}, updatesToPlatform)
-            invalidYearPut.year = 'year'
+            invalidYearPut.year = 444.111
 
             await invalidParameterPutTest(invalidYearPut)
         })

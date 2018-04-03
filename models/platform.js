@@ -13,7 +13,11 @@ const platformSchema = new mongoose.Schema({
     },
     year: {
         type: Number,
-        required: true
+        required: true,
+        validate: {
+            validator: Number.isInteger,
+            message: 'Not an integer'
+        }
     },
     games: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }]
 })
