@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const gameSchema = new mongoose.Schema({
     name: {
         type: String,
+        minlength: 1,
         required: true
     },
     platform: { 
@@ -11,13 +12,22 @@ const gameSchema = new mongoose.Schema({
     },
     year: {
         type: Number,
-        required: true
+        required: true,
+        validate: {
+            validator: Number.isInteger,
+            message: 'Not an integer'
+        }
     },
     developer: {
         type: String,
+        minlength: 1,
         required: true
     },
-    publisher: String
+    publisher: {
+        type: String,
+        minlength: 1,
+        required: false
+    }
 })
 
 gameSchema.statics.format = (game) => {
