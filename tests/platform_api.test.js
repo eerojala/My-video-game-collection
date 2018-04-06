@@ -1,7 +1,14 @@
 const supertest = require('supertest')
 const { app, server } = require('../index')
 const Platform = require('../models/platform')
-const { saveInitialPlatformsAndGames, nonExistingId, platformsInDb, newPlatform } = require('../utils/test_helper')
+const { 
+    saveInitialPlatformsAndGames, 
+    nonExistingId, 
+    platformsInDb,
+    platform1,
+    platform2,
+    platform3 
+} = require('../utils/test_helper')
 
 const api = supertest(app)
 
@@ -85,7 +92,7 @@ describe('When there are initially some platforms saved', async () => {
 
             await api   
                 .post('/api/platforms')
-                .send(newPlatform)
+                .send(platform1)
                 .expect(200)
                 .expect('Content-type', /application\/json/)
 
@@ -97,27 +104,27 @@ describe('When there are initially some platforms saved', async () => {
             const creators = platformsAfterPost.map(platform => platform.creator)
             const years = platformsAfterPost.map(platform => platform.year)
 
-            expect(names).toContain(newPlatform.name)
-            expect(creators).toContain(newPlatform.creator)
-            expect(years).toContain(newPlatform.year)
+            expect(names).toContain(platform1.name)
+            expect(creators).toContain(platform1.creator)
+            expect(years).toContain(platform1.year)
         })
 
         test('fails with an empty name', async () => {
-            const emptyNamePost = Object.assign({}, newPlatform)
+            const emptyNamePost = Object.assign({}, platform1)
             emptyNamePost.name = ""
     
             await invalidParameterPostTest(emptyNamePost)
         })
     
         test('fails with an empty creator', async () => {
-            const emptyCreatorPost = Object.assign({}, newPlatform)
+            const emptyCreatorPost = Object.assign({}, platform1)
             emptyCreatorPost.creator = ""
     
             await invalidParameterPostTest(emptyCreatorPost)
         })
     
         test ('fails with an invalid year', async () => {
-            const invalidYearPost = Object.assign({}, newPlatform)
+            const invalidYearPost = Object.assign({}, platform1)
             invalidYearPost.year = 1778.5
             
             await invalidParameterPostTest(invalidYearPost)
@@ -128,12 +135,7 @@ describe('When there are initially some platforms saved', async () => {
         let updatesToPlatform, invalidParameterPutTest
         
         beforeAll(async () => {
-            updatesToPlatform = {
-                name: 'Nintendo Entertainment System',
-                creator: 'Nintendo',
-                year: 1983,
-                games: []
-            }
+            updatesToPlatform = platform2
 
             invalidParameterPutTest = async (data) => {
                 const platformsBeforePut = await platformsInDb()
@@ -151,7 +153,7 @@ describe('When there are initially some platforms saved', async () => {
             }
         })
 
-        test ('succeeds with valid data', async() => {
+        test ('succeeds with valid data', async () => {
             const platformsBeforePut = await platformsInDb()
             
             const platformBeforePut = platformsBeforePut[0]
@@ -179,7 +181,7 @@ describe('When there are initially some platforms saved', async () => {
             expect(years).not.toContain(platformBeforePut.year)
         })
 
-        test ('fails with valid data but invalid id', async() => {
+        test ('fails with valid data but invalid id', async () => {
             const platformsBeforePut = await platformsInDb()
             const invalidId = await nonExistingId()
             
@@ -195,25 +197,79 @@ describe('When there are initially some platforms saved', async () => {
             expect(platformsAfterPut).toEqual(platformsBeforePut)
         })
 
-        test('fails with an empty name', async() => {
+        test('fails with an empty name', async () => {
             const emptyNamePut = Object.assign({}, updatesToPlatform)
             emptyNamePut.name = ''
 
             await invalidParameterPutTest(emptyNamePut)
         })
 
-        test('fails with an empty creator', async() => {      
+        test('fails with an empty creator', async () => {      
             const emptyCreatorPut = Object.assign({}, updatesToPlatform)
             emptyCreatorPut.creator = ''
 
             await invalidParameterPutTest(emptyCreatorPut)
         })
 
-        test('fails with an invalid year', async() => {
+        test('fails with an invalid year', async () => {
             const invalidYearPut = Object.assign({}, updatesToPlatform)
             invalidYearPut.year = 444.111
 
             await invalidParameterPutTest(invalidYearPut)
+        })
+    })
+
+    describe('DELETE /api/platforms/:id', async () => {
+        test('successfully deletes the platform matching the id', async () => {
+            const newPlatform = new Platform(platform3)
+
+            await newPlatform.save()
+
+            const platformsBeforeDelete = await platformsInDb()
+
+            await api
+                .delete(`/api/platforms/${newPlatform.id}`)
+                .expect(204)
+
+            const platformsAfterDelete = await platformsInDb()
+
+            const names = platformsAfterDelete.map(platform => platform.name)
+            const creators = platformsAfterDelete.map(platform => platform.creator)
+            const years = platformsAfterDelete.map(platform => platform.year)
+
+            expect(platformsBeforeDelete).not.toEqual(platformsAfterDelete)
+            expect(names).not.toContain(platform3.name)
+            expect(creators).not.toContain(platform3.creator)
+            expect(years).not.toContain(platform3.year)
+        })
+
+        test('does not affect the database if trying to delete a non-existing platform', async () => {
+            const platformsBeforeDelete = await platformsInDb()
+
+            const invalidId = await nonExistingId()
+
+            await api
+                .delete(`/api/platforms/${invalidId}`)
+                .expect(204)
+
+            const platformsAfterDelete = await platformsInDb()
+
+            expect(platformsBeforeDelete).toEqual(platformsAfterDelete)
+        })
+
+        test('returns status code 400 if trying to delete a platform matching a malformatted id', async () => {
+            const platformsBeforeDelete = await platformsInDb()
+
+            const response = await api
+                .delete('/api/platforms/invalid')
+                .expect(400)
+                .expect('Content-type', /application\/json/)
+
+            expect(response.body.error).toBe('Malformatted id')
+
+            const platformsAfterDelete = await platformsInDb()
+
+            expect(platformsBeforeDelete).toEqual(platformsAfterDelete)
         })
     })
 

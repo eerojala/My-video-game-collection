@@ -100,10 +100,22 @@ const addGamesToPlatforms = async () => {
     await Promise.all(promiseArray)
 }
 
-const newPlatform = {
+const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
     year: 1998
+}
+
+const platform2 = {
+    name: 'Nintendo Entertainment System',
+    creator: 'Nintendo',
+    year: 1983
+}
+
+const platform3 = {
+    name: 'Steam',
+    creator: 'Valve Corporation',
+    year: 2003
 }
  
 module.exports = {
@@ -111,5 +123,7 @@ module.exports = {
     nonExistingId,
     platformsInDb,
     gamesInDb,
-    newPlatform
+    platform1,
+    platform2,
+    platform3
 }
