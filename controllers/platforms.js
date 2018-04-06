@@ -58,6 +58,7 @@ platformsRouter.post('/', async (request, response) => {
 platformsRouter.put('/:id', async (request, response) => {
     try {
         const body = request.body
+
         const platform = await Platform.findById(request.params.id)
 
         if (!platform) {
@@ -72,6 +73,7 @@ platformsRouter.put('/:id', async (request, response) => {
         }
 
         const updatedPlatform = await Platform.findByIdAndUpdate(request.params.id, newPlatform, { new: true, runValidators: true })
+        
         response.json(Platform.format(updatedPlatform))
     } catch (exception) {
         print(exception)
