@@ -1,6 +1,7 @@
 const gamesRouter = require('express').Router()
 const Game = require('../models/game')
 const Platform = require('../models/platform')
+const print = require('../utils/print')
 
 gamesRouter.get('/', async (request, response) => {
     const games = await Game
@@ -22,7 +23,7 @@ gamesRouter.get('/:id', async (request, response) => {
             response.status(404).end()
         }
     } catch (exception) {
-        console.log(exception)
+        print(exception)
         respone.status(400).send({ error: 'Malformatted id' })
     }
 })

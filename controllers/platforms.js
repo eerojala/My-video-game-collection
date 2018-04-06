@@ -3,11 +3,16 @@ const Platform = require('../models/platform')
 const print = require('../utils/print')
 
 platformsRouter.get('/', async (request, response) => {
-    const platforms = await Platform
-        .find({})
-        .populate('games', { __v: 0, platform: 0 })
+    try {
+        const platforms = await Platform
+            .find({})
+            .populate('games', { __v: 0, platform: 0 })
 
-    response.json(platforms.map(Platform.format))
+        response.json(platforms.map(Platform.format))
+    } catch (exception) {
+        print(exception)
+        response.status(500).json({ error: 'Something went wrong...' })
+    }
 })
 
 platformsRouter.get('/:id', async (request, response) => {
@@ -23,7 +28,12 @@ platformsRouter.get('/:id', async (request, response) => {
         }
     } catch (exception) {
         print(exception)
-        response.status(400).json({ error: 'Malformatted id' })
+
+        if (exception.name === 'CastError') {
+            response.status(400).json({ error: 'Malformatted id' })
+        } else {
+            response.status(500).json({ error: 'Something went wrong...' })
+        }
     }
 })
 
