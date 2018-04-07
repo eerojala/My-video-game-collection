@@ -4,7 +4,10 @@ const Game = require('../models/game')
 const { 
     saveInitialPlatformsAndGames, 
     nonExistingId, 
-    gamesInDb
+    gamesInDb,
+    platformsInDb,
+    findPlatform,
+    game1
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -23,19 +26,11 @@ describe('When there are initially some games and platforms saved', async () => 
             .expect('Content-type', /application\/json/)
 
         const names = response.body.map(game => game.name)
-        const platforms = response.body.map(game => String(game.platform._id))
-        const years = response.body.map(game => game.year)
-        const developers = response.body.map(game => game.developer)
-        const publishers = response.body.map(game => game.publisher)
 
         expect(games).toHaveLength(3)
 
         games.forEach(game => {
             expect(names).toContain(game.name)
-            expect(platforms).toContain(String(game.platform))
-            expect(years).toContain(game.year)
-            expect(developers).toContain(game.developer)
-            expect(publishers).toContain(game.publisher)
         })
     })
 
@@ -53,20 +48,16 @@ describe('When there are initially some games and platforms saved', async () => 
             const body = response.body
 
             expect(body._id).toEqual(game._id)
-            expect(body.name).toEqual(game.name)
-            expect(String(body.platform._id)).toEqual(String(game.platform))
-            expect(body.year).toEqual(game.year)
-            expect(body.developer).toEqual(game.developer)
-            expect(body.publisher).toEqual(game.publisher)
+            expect(body.name).toBe(game.name)
         })
 
         test('returns status code 400 with malformatted id', async () => {
             const response = await api
-                .get('/api/platforms/invalid')
+                .get('/api/games/invalid')
                 .expect(400)
                 .expect('Content-type', /application\/json/)
 
-            expect(response.body.error).toBe('Malformatted id')
+            expect(response.body.error).toBe('Malformatted game id')
         })
 
         test('returns status code 404 if no game found matching a valid id', async () => {
@@ -75,6 +66,55 @@ describe('When there are initially some games and platforms saved', async () => 
             await api
                 .get(`/api/games/${unusedId}`)
                 .expect(404)
+        })
+    })
+
+    describe('POST /api/games', async () => {
+        let invalidGamePostTest
+
+        beforeAll(async () => {
+            invalidGamePostTest = async (data) => {
+                const gamesBeforePost = await gamesInDb()
+
+                const response = await api
+                    .post('/api/games')
+                    .send(data)
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+
+                const gamesAfterPost = await gamesInDb()
+
+                expect(response.body.error).toBe('Invalid parameters')
+                expect(gamesBeforePost).toEqual(gamesAfterPost)
+            }
+        })
+
+        test('succeeds with valid data', async () => {
+            const platforms = await platformsInDb()
+
+            const newGame = Object.assign({}, game1)
+            newGame.platform = platforms[1].id
+
+            const gamesBeforePost = await gamesInDb()
+
+            const response = await api
+                .post('/api/games')
+                .send(newGame)
+                .expect(200)
+                .expect('Content-type', /application\/json/)
+
+            const gamesAfterPost = await gamesInDb()
+
+            expect(gamesAfterPost).toHaveLength(gamesBeforePost.length + 1)
+
+            const ids = gamesAfterPost.map(game => game.id)
+            const names = gamesAfterPost.map(game => game.name)
+            expect(ids).toContain(response.body.id)
+            expect(names).toContain(newGame.name)
+
+            const platformAfterPost = await findPlatform(newGame.platform)
+
+            expect(platformAfterPost.games).toContain(response.body.id)
         })
     })
 

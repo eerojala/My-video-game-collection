@@ -18,20 +18,20 @@ const initialGames = [
     {
         name: 'Crash Bandicoot',
         year: 1996,
-        developer: 'Naughty Dog',
-        publisher: 'Sony Computer Entertainment'
+        developers: ['Naughty Dog'],
+        publishers: ['Sony Computer Entertainment']
     },
     {
         name: 'Baseball Stars 2',
         year: 1992,
-        developer: 'SNK',
-        publisher: 'SNK'
+        developers: ['SNK'],
+        publishers: ['SNK']
     },
     {
         name: 'Neo Turf Masters',
         year: 1996,
-        developer: 'Nazca Corporation',
-        publisher: 'SNK'
+        developers: ['Nazca Corporation'],
+        publishers: ['SNK']
     }
 ]
 
@@ -100,6 +100,12 @@ const addGamesToPlatforms = async () => {
     await Promise.all(promiseArray)
 }
 
+const findPlatform = async (id) => {
+    const platform = await Platform.findById(id)
+    
+    return Platform.format(platform)
+}
+
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
@@ -117,13 +123,22 @@ const platform3 = {
     creator: 'Valve Corporation',
     year: 2003
 }
+
+const game1 = {
+    name: 'Spyro the Dragon',
+    year: 1998,
+    developers: ['Insomniac Games'],
+    publishers: ['Sony Computer Entertainment', 'Universal Interactive Studios']
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
     nonExistingId,
     platformsInDb,
     gamesInDb,
+    findPlatform,
     platform1,
     platform2,
-    platform3
+    platform3,
+    game1
 }

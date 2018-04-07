@@ -68,7 +68,7 @@ describe('When there are initially some platforms saved', async () => {
                 .expect(400)
                 .expect('Content-type', /application\/json/)
 
-            expect(response.body.error).toBe('Malformatted id')
+            expect(response.body.error).toBe('Malformatted platform id')
         })
 
         test('returns status code 404 if no platform found matching a valid id', async () => {
@@ -81,10 +81,10 @@ describe('When there are initially some platforms saved', async () => {
     })
 
     describe('POST /api/platforms', async() => {
-        let invalidParamteterPostTest
+        let invalidPlatformPostTest
 
         beforeAll(async () => {
-            invalidParameterPostTest = async (data) => {
+            invalidPlatformPostTest = async (data) => {
                 const platformsBeforePost = await platformsInDb()
 
                 const response = await api
@@ -95,7 +95,7 @@ describe('When there are initially some platforms saved', async () => {
         
                 const platformsAfterPost = await platformsInDb()
 
-                expect(response.body.error).toBe('Invalid parameters')
+                expect(response.body.error).toBe('Invalid platform parameters')
                 expect(platformsBeforePost).toEqual(platformsAfterPost)
             }
         })
@@ -126,21 +126,21 @@ describe('When there are initially some platforms saved', async () => {
             const emptyNamePost = Object.assign({}, platform1)
             emptyNamePost.name = ""
     
-            await invalidParameterPostTest(emptyNamePost)
+            await invalidPlatformPostTest(emptyNamePost)
         })
     
         test('fails with an empty creator', async () => {
             const emptyCreatorPost = Object.assign({}, platform1)
             emptyCreatorPost.creator = ""
     
-            await invalidParameterPostTest(emptyCreatorPost)
+            await invalidPlatformPostTest(emptyCreatorPost)
         })
     
         test ('fails with an invalid year', async () => {
             const invalidYearPost = Object.assign({}, platform1)
             invalidYearPost.year = 1778.5
             
-            await invalidParameterPostTest(invalidYearPost)
+            await invalidPlatformPostTest(invalidYearPost)
         })
     })
 
@@ -161,7 +161,7 @@ describe('When there are initially some platforms saved', async () => {
     
                 const platformsAfterPut = await platformsInDb()
     
-                expect(response.body.error).toBe('Invalid parameters')
+                expect(response.body.error).toBe('Invalid platform parameters')
                 expect(platformsAfterPut).toEqual(platformsBeforePut)
             }
         })
@@ -278,7 +278,7 @@ describe('When there are initially some platforms saved', async () => {
                 .expect(400)
                 .expect('Content-type', /application\/json/)
 
-            expect(response.body.error).toBe('Malformatted id')
+            expect(response.body.error).toBe('Malformatted platform id')
 
             const platformsAfterDelete = await platformsInDb()
 

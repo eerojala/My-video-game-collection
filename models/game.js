@@ -18,16 +18,16 @@ const gameSchema = new mongoose.Schema({
             message: 'Not an integer'
         }
     },
-    developer: {
+    developers: [{
         type: String,
         minlength: 1,
         required: true
-    },
-    publisher: {
+    }],
+    publishers: [{
         type: String,
         minlength: 1,
         required: false
-    }
+    }]
 })
 
 gameSchema.statics.format = (game) => {
@@ -36,8 +36,8 @@ gameSchema.statics.format = (game) => {
         name: game.name,
         platform: game.platform,
         year: game.year,
-        developer: game.developer,
-        publisher: game.publisher
+        developers: game.developers,
+        publishers: game.publishers
     }
 }
 

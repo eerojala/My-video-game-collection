@@ -31,7 +31,7 @@ gamesRouter.get('/:id', async (request, response) => {
         print(exception)
 
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted id' })
+            response.status(400).json({ error: 'Malformatted game id' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -45,7 +45,7 @@ gamesRouter.post('/', async (request, response) => {
         const platform = await Platform.findById(game.platform)
 
         if (!platform) {
-            response.status(400).json({ error: 'Invalid platform' })
+            response.status(400).json({ error: 'No platform found matching id' })
         }
 
         const savedGame = await game.save()
@@ -59,7 +59,7 @@ gamesRouter.post('/', async (request, response) => {
         print(exception)
 
         if (exception.name === 'ValidationError' || exception.name === 'CastError'){
-            response.status(400).json({ error: 'Invalid parameters' })
+            response.status(400).json({ error: 'Invalid game parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -91,7 +91,7 @@ gamesRouter.put('/:id', async (request, response) => {
         print(exception)
 
         if (exception._message === 'Validation failed' || exception.name === 'CastError') {
-            response.status(400).json({ error: 'Invalid parameters' })
+            response.status(400).json({ error: 'Invalid game parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -105,7 +105,7 @@ gamesRouter.delete('/:id', async (request, response) => {
         response.status(204).end()
     } catch (exception) {
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted id' })
+            response.status(400).json({ error: 'Malformatted  game id' })
         } else {
             response.status(500).json({ error: 'Error, something went wrong' })
         }

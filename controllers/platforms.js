@@ -30,7 +30,7 @@ platformsRouter.get('/:id', async (request, response) => {
         print(exception)
 
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted id' })
+            response.status(400).json({ error: 'Malformatted platform id' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -48,7 +48,7 @@ platformsRouter.post('/', async (request, response) => {
         print(exception)
 
         if (exception.name === 'ValidationError' || exception.name === 'CastError'){
-            response.status(400).json({ error: 'Invalid parameters' })
+            response.status(400).json({ error: 'Invalid platform parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -79,7 +79,7 @@ platformsRouter.put('/:id', async (request, response) => {
         print(exception)
 
         if (exception._message === 'Validation failed' || exception.name === 'CastError') {
-            response.status(400).json({ error: 'Invalid parameters' })
+            response.status(400).json({ error: 'Invalid platform parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -93,7 +93,7 @@ platformsRouter.delete('/:id', async (request, response) => {
         response.status(204).end()
     } catch (exception) {
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted id' })
+            response.status(400).json({ error: 'Malformatted platform id' })
         } else {
             response.status(500).json({ error: 'Error, something went wrong' })
         }
