@@ -25,14 +25,25 @@ describe('When there are initially some platforms saved', async () => {
             .expect(200)
             .expect('Content-type', /application\/json/)
 
-        const returnedNames = response.body.map(platform => platform.name)
+        const body = response.body
+        const ids = body.map(platform => platform.id)
+        const names = body.map(platform => platform.name)
+        const creators = body.map(platform => platform.creator)
+        const years = body.map(platform => platform.year)
+        const games = body.map(platform => platform.games)
+
         platforms.forEach(platform => {
-            expect(returnedNames).toContain(platform.name)
+            expect(ids).toContain(platform.id)
+            expect(names).toContain(platform.name)
+            expect(creators).toContain(platform.creator)
+            expect(years).toContain(platform.year)
         })
+
+        expect(games).toHaveLength(2)
     })
 
     describe('GET /api/platforms/:id', async () =>  {
-        test('individual platform is returned as JSON by GET /api/platforms/:id', async () => {
+        test('returns an individual platform as JSON', async () => {
             const platforms = await platformsInDb()
     
             const platform = platforms[1]
@@ -56,12 +67,14 @@ describe('When there are initially some platforms saved', async () => {
                 .get('/api/platforms/invalid')
                 .expect(400)
                 .expect('Content-type', /application\/json/)
+
+            expect(response.body.error).toBe('Malformatted id')
         })
 
-        test('returns status code 404 if no platform found matching valid id', async () => {
+        test('returns status code 404 if no platform found matching a valid id', async () => {
             const invalidId = await nonExistingId()
             
-            const response = await api
+            await api
                 .get(`/api/platforms/${invalidId}`)
                 .expect(404)
         })
