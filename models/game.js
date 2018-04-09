@@ -18,17 +18,27 @@ const gameSchema = new mongoose.Schema({
             message: 'Not an integer'
         }
     },
-    developers: [{
-        type: String,
-        minlength: 1,
-        required: true
-    }],
+    developers: {
+        type: [{
+            type: String,
+            minlength: 1,
+            required: true
+        }],
+        validate: {
+            validator: notEmpty,
+            message: 'Must have atleast one developer'
+        }
+    },
     publishers: [{
         type: String,
         minlength: 1,
         required: false
     }]
 })
+
+function notEmpty(val) {
+    return val.length > 0
+}
 
 gameSchema.statics.format = (game) => {
     return {

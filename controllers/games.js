@@ -45,7 +45,7 @@ gamesRouter.post('/', async (request, response) => {
         const platform = await Platform.findById(game.platform)
 
         if (!platform) {
-            response.status(400).json({ error: 'No platform found matching id' })
+            return response.status(400).json({ error: 'No platform found' })
         }
 
         const savedGame = await game.save()
