@@ -7,7 +7,9 @@ const {
     gamesInDb,
     platformsInDb,
     findPlatform,
-    game1
+    findGame,
+    game1,
+    game2
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -134,13 +136,6 @@ describe('When there are initially some games and platforms saved', async () => 
             await successfulGamePostTest(emptyPublishersPost)
         })
 
-        test('succeeds with no publisher array', async () => {
-            const noPublishersPost = Object.assign({}, game1)
-            noPublishersPost.publishers = null
-
-            await successfulGamePostTest(noPublishersPost)
-        })
-
         test('fails with no valid platform', async () => {
             const gamesBeforePost = await gamesInDb()
 
@@ -184,18 +179,134 @@ describe('When there are initially some games and platforms saved', async () => 
             await invalidGamePostTest(emptyDevelopersPost)
         })
 
-        test('fails with no developer array', async() => {
-            const noDevelopersPost = Object.assign({}, game1)
-            noDevelopersPost.developers = null
-
-            await invalidGamePostTest(noDevelopersPost)
-        })
-
         test('fails with invalid publishers', async() => {
             const invalidPublishersPost = Object.assign({}, game1)
             invalidPublishersPost.publishers = [""]
 
             await invalidGamePostTest(invalidPublishersPost)
+        })
+    })
+
+    describe('PUT /api/games/:id', async() => {
+        let successfulPutTest, invalidPutTest
+
+        beforeAll(async () => {
+            successfulPutTest = async (data) => {
+                const gamesBeforePut = await gamesInDb()
+                const platforms = await platformsInDb()
+
+                data.platform = platforms[0].id
+                const gameBeforePut = gamesBeforePut[0]
+
+                await api
+                    .put(`/api/games/${gameBeforePut.id}`)
+                    .send(data)
+                    .expect(200)
+                    .expect('Content-type', /application\/json/)
+
+                const gamesAfterPut = await gamesInDb()
+                const gameAfterPut = await findGame(gameBeforePut.id)
+
+                expect(gamesAfterPut).toHaveLength(gamesBeforePut.length)
+                expect(gameAfterPut).not.toEqual(gameBeforePut)
+                expect(gameAfterPut.name).toEqual(data.name)
+                expect(JSON.stringify(gameAfterPut.platform)).toEqual(JSON.stringify(data.platform))
+                expect(gameAfterPut.year).toEqual(data.year)
+                expect(JSON.stringify(gameAfterPut.developers)).toEqual(JSON.stringify(data.developers))
+                expect(JSON.stringify(gameAfterPut.publishers)).toEqual(JSON.stringify(data.publishers))
+            }
+
+            invalidPutTest = async (data) => {
+                const gamesBeforePut = await gamesInDb()
+                const platforms = await platformsInDb()
+
+                data.platform = platforms[0].id 
+                const response = await api
+                    .put(`/api/games/${gamesBeforePut[0].id}`)
+                    .send(data)
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+
+                const gamesAfterPut = await gamesInDb()
+
+                expect(response.body.error).toBe('Invalid game parameters')
+                expect(gamesAfterPut).toEqual(gamesBeforePut)
+            }
+        })
+
+        test('succeeds with valid data', async() => {
+            const changesToGame = Object.assign({}, game2)
+            
+            await successfulPutTest(changesToGame)
+        })
+
+        test('fails with invalid id', async() => {
+            const gamesBeforePut = await gamesInDb()
+            const invalidId = await nonExistingId()
+
+            const response = await api
+                .put(`/api/games/${invalidId}`)
+                .send(game2)
+                .expect(404)
+                .expect('Content-type', /application\/json/)
+
+            const gamesAfterPut = await gamesInDb()
+
+            expect(response.body.error).toBe('No game found matching id')
+            expect(gamesAfterPut).toEqual(gamesBeforePut)
+        })
+
+        test('fails with invalid platform', async() => {
+            const gamesBeforePut = await gamesInDb()
+            
+            const invalidPlatform = Object.assign({}, game2)
+            invalidPlatform.platform = "invalid"
+
+            const response = await api
+                .put(`/api/games/${gamesBeforePut[0].id}`)
+                .send(invalidPlatform) 
+                .expect(400)
+                .expect('Content-type', /application\/json/)
+
+            const gamesAfterPut = await gamesInDb()
+
+            expect(gamesAfterPut).toEqual(gamesBeforePut)
+            expect(response.body.error).toBe('Invalid game parameters')
+        })
+
+        test('fails with invalid name', async() => {
+            const invalidName = Object.assign({}, game2)
+            invalidName.name = ""
+
+            await invalidPutTest(invalidName)
+        })
+        
+        test('fails with invalid year', async() => {
+            const invalidYear = Object.assign({}, game2)
+            invalidYear.year = 225.52
+
+            await invalidPutTest(invalidYear)
+        })
+
+        test('fails with invalid developers', async () => {
+            const invalidDevelopers = Object.assign({}, game2)
+            invalidDevelopers.developers = ["", ""]
+
+            await invalidPutTest(invalidDevelopers)
+        })
+
+        test('fails with empty developer array', async () => {
+            const emptyDevelopers = Object.assign({}, game2)
+            emptyDevelopers.developers = []
+
+            await invalidPutTest(emptyDevelopers)
+        })
+
+        test('fails with invalid publishers', async () => {
+            const invalidPublishers = Object.assign({}, game2)
+            invalidPublishers.publishers = [""]
+
+            await invalidPutTest(invalidPublishers)
         })
     })
 

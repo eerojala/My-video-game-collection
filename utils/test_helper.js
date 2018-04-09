@@ -106,6 +106,12 @@ const findPlatform = async (id) => {
     return Platform.format(platform)
 }
 
+const findGame = async (id) => {
+    const game = await Game.findById(id)
+
+    return Game.format(game)
+}
+
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
@@ -130,6 +136,13 @@ const game1 = {
     developers: ['Insomniac Games'],
     publishers: ['Sony Computer Entertainment', 'Universal Interactive Studios']
 }
+
+const game2 = {
+    name: 'Digimon World',
+    year: 1999,
+    developers: ['Bandai', 'Flying Tiger Development'],
+    publishers: ['Bandai']
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -137,8 +150,10 @@ module.exports = {
     platformsInDb,
     gamesInDb,
     findPlatform,
+    findGame,
     platform1,
     platform2,
     platform3,
-    game1
+    game1,
+    game2
 }

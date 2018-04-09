@@ -69,8 +69,7 @@ gamesRouter.post('/', async (request, response) => {
 gamesRouter.put('/:id', async (request, response) => {
     try {
         const body = request.body
-
-        const game = await Game.findById()
+        const game = await Game.findById(request.params.id)
 
         if (!game) {
             return response.status(404).json({ error: 'No game found matching id' })
@@ -80,11 +79,11 @@ gamesRouter.put('/:id', async (request, response) => {
             name: body.name,
             platform: body.platform,
             year: body.year,
-            developer: body.developer,
-            publisher: body.publisher
+            developers: body.developers,
+            publishers: body.publishers
         }
 
-        const updatedGame = await Game.findByIdAndUpdate(request.params.id, newGame, { new: true })
+        const updatedGame = await Game.findByIdAndUpdate(request.params.id, newGame, { new: true, runValidators: true })
 
         response.json(Game.format(updatedGame))
     } catch (exception) {
