@@ -342,6 +342,35 @@ describe('When there are initially some games and platforms saved', async () => 
             expect(gamesAfterDelete).not.toContain(newGame)
             expect(platformAfterDelete.games).not.toContain(newGame.id)
         })
+
+        test('returns 404 if trying to delete a game matching a non-existing id', async () => {
+            const gamesBeforeDelete = await gamesInDb()
+            const invalidId = await nonExistingId()
+
+            const response = await api
+                .delete(`/api/games/${invalidId}`)
+                .expect(404)
+                .expect('Content-type', /application\/json/)
+
+            const gamesAfterDelete = await gamesInDb()
+
+            expect(response.body.error).toBe('No game found matching id')
+            expect(gamesAfterDelete).toEqual(gamesBeforeDelete)
+        })
+
+        test ('returns status code 400 if trying to delete a game matching a malformatted id', async () => {
+            const gamesBeforeDelete = await gamesInDb()
+
+            const response = await api
+                .delete('/api/games/invalid')
+                .expect(400)
+                .expect('Content-type', /application\/json/)
+
+            const gamesAfterDelete = await gamesInDb()
+
+            expect(response.body.error).toBe('Malformatted game id')
+            expect(gamesAfterDelete).toEqual(gamesBeforeDelete)
+        })
     })
 
     afterAll(() => {

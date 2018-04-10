@@ -100,6 +100,11 @@ gamesRouter.put('/:id', async (request, response) => {
 gamesRouter.delete('/:id', async (request, response) => {
     try {
         const game = await Game.findByIdAndRemove(request.params.id)
+
+        if (!game) {
+            return response.status(404).json({ error: 'No game found matching id' })
+        }
+
         const platform = await Platform.findById(game.platform)
 
         platform.games = platform.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.id))
@@ -109,7 +114,7 @@ gamesRouter.delete('/:id', async (request, response) => {
         response.status(204).end()
     } catch (exception) {
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted  game id' })
+            response.status(400).json({ error: 'Malformatted game id' })
         } else {
             response.status(500).json({ error: 'Error, something went wrong' })
         }
