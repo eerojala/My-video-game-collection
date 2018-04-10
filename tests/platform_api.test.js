@@ -5,6 +5,7 @@ const {
     saveInitialPlatformsAndGames, 
     nonExistingId, 
     platformsInDb,
+    findPlatform,
     platform1,
     platform2,
     platform3 
@@ -30,16 +31,15 @@ describe('When there are initially some platforms saved', async () => {
         const names = body.map(platform => platform.name)
         const creators = body.map(platform => platform.creator)
         const years = body.map(platform => platform.year)
-        const games = body.map(platform => platform.games)
+        const games = body.map(platform => JSON.stringify(platform.games.map(game => game._id)))
 
         platforms.forEach(platform => {
             expect(ids).toContain(platform.id)
             expect(names).toContain(platform.name)
             expect(creators).toContain(platform.creator)
             expect(years).toContain(platform.year)
+            expect(games).toContain(JSON.stringify(platform.games))
         })
-
-        expect(games).toHaveLength(2)
     })
 
     describe('GET /api/platforms/:id', async () =>  {
@@ -59,7 +59,7 @@ describe('When there are initially some platforms saved', async () => {
             expect(body.name).toEqual(platform.name)
             expect(body.creator).toEqual(platform.creator)
             expect(body.year).toEqual(platform.year)
-            expect(body.games).toHaveLength(2)
+            expect(JSON.stringify(body.games.map(game => game._id))).toEqual(JSON.stringify(platform.games))
         })
     
         test('returns status code 400 with malformatted id', async () => {
@@ -103,23 +103,20 @@ describe('When there are initially some platforms saved', async () => {
         test('succeeds with valid data', async () => {
             const platformsBeforePost = await platformsInDb()
 
-            await api   
+            const response = await api   
                 .post('/api/platforms')
                 .send(platform1)
                 .expect(200)
                 .expect('Content-type', /application\/json/)
 
             const platformsAfterPost = await platformsInDb()
+            const platformAfterPost = await findPlatform(response.body.id)
 
             expect(platformsAfterPost).toHaveLength(platformsBeforePost.length + 1)
-            
-            const names = platformsAfterPost.map(platform => platform.name)
-            const creators = platformsAfterPost.map(platform => platform.creator)
-            const years = platformsAfterPost.map(platform => platform.year)
-
-            expect(names).toContain(platform1.name)
-            expect(creators).toContain(platform1.creator)
-            expect(years).toContain(platform1.year)
+            expect(platformAfterPost.name).toBe(platform1.name)
+            expect(platformAfterPost.creator).toBe(platform1.creator)
+            expect(platformAfterPost.year).toBe(platform1.year)
+            expect(JSON.stringify(platformAfterPost.games)).toBe(JSON.stringify(platform1.games))
         })
 
         test('fails with an empty name', async () => {
@@ -178,20 +175,14 @@ describe('When there are initially some platforms saved', async () => {
                 .expect('Content-type', /application\/json/)
             
             const platformsAfterPut = await platformsInDb()
+            const platformAfterPut = await findPlatform(platformBeforePut.id)
+
             expect(platformsAfterPut).toHaveLength(platformsBeforePut.length)
-
-            const ids = platformsAfterPut.map(platform => platform.id)
-            const names = platformsAfterPut.map(platform => platform.name)
-            const creators = platformsAfterPut.map(platform => platform.creator)
-            const years = platformsAfterPut.map(platform => platform.year)
-
-            expect(ids).toContain(platformBeforePut.id)
-            expect(names).toContain(updatesToPlatform.name)
-            expect(names).not.toContain(platformBeforePut.name)
-            expect(creators).toContain(updatesToPlatform.creator)
-            expect(creators).not.toContain(platformBeforePut.creator)
-            expect(years).toContain(updatesToPlatform.year)
-            expect(years).not.toContain(platformBeforePut.year)
+            expect(platformAfterPut.name).toBe(updatesToPlatform.name)
+            expect(platformAfterPut.creator).toBe(updatesToPlatform.creator)
+            expect(platformAfterPut.year).toBe(updatesToPlatform.year)
+            expect(JSON.stringify(platformAfterPut.games)).toBe(JSON.stringify(platformBeforePut.games)) 
+            // PUT /api/platforms/:id does not update the games list
         })
 
         test ('fails with valid data but invalid id', async () => {
@@ -240,20 +231,19 @@ describe('When there are initially some platforms saved', async () => {
 
             const platformsBeforeDelete = await platformsInDb()
 
+            const platformIdsBeforeDelete = platformsBeforeDelete.map(platform => platform.id)
+
+            expect(JSON.stringify(platformIdsBeforeDelete)).toContain(JSON.stringify(newPlatform.id))
+
             await api
                 .delete(`/api/platforms/${newPlatform.id}`)
                 .expect(204)
 
             const platformsAfterDelete = await platformsInDb()
 
-            const names = platformsAfterDelete.map(platform => platform.name)
-            const creators = platformsAfterDelete.map(platform => platform.creator)
-            const years = platformsAfterDelete.map(platform => platform.year)
-
-            expect(platformsBeforeDelete).not.toEqual(platformsAfterDelete)
-            expect(names).not.toContain(platform3.name)
-            expect(creators).not.toContain(platform3.creator)
-            expect(years).not.toContain(platform3.year)
+            expect(JSON.stringify(platformsAfterDelete)).not.toEqual(JSON.stringify(platformsBeforeDelete))
+            expect(platformsAfterDelete).toHaveLength(platformsBeforeDelete.length - 1)
+            expect(JSON.stringify(platformsAfterDelete)).not.toContain(JSON.stringify(newPlatform))
         })
 
         test('does not affect the database if trying to delete a non-existing platform', async () => {

@@ -115,19 +115,22 @@ const findGame = async (id) => {
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
-    year: 1998
+    year: 1998,
+    games: []
 }
 
 const platform2 = {
     name: 'Nintendo Entertainment System',
     creator: 'Nintendo',
-    year: 1983
+    year: 1983,
+    games: []
 }
 
 const platform3 = {
     name: 'Steam',
     creator: 'Valve Corporation',
-    year: 2003
+    year: 2003,
+    games: []
 }
 
 const game1 = {

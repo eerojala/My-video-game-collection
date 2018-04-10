@@ -35,8 +35,6 @@ describe('When there are initially some games and platforms saved', async () => 
         const developers = response.body.map(game => JSON.stringify(game.developers))
         const publishers = response.body.map(game => JSON.stringify(game.publishers))
 
-        expect(games).toHaveLength(3)
-
         games.forEach(game => {
             expect(names).toContain(game.name)
             expect(platforms).toContain(JSON.stringify(game.platform))
@@ -339,7 +337,7 @@ describe('When there are initially some games and platforms saved', async () => 
             const platformBeforeDelete = await findPlatform(platform.id)
             const gameIdsBeforeDelete = gamesBeforeDelete.map(game => game.id)
 
-            expect(gameIdsBeforeDelete).toContain(newGame.id)
+            expect(JSON.stringify(gameIdsBeforeDelete)).toContain(JSON.stringify(newGame.id))
             expect(JSON.stringify(platformBeforeDelete.games)).toContain(JSON.stringify(newGame.id))
 
             await api
@@ -349,9 +347,10 @@ describe('When there are initially some games and platforms saved', async () => 
             const gamesAfterDelete = await gamesInDb()
             const platformAfterDelete = await findPlatform(platform.id)
 
+            expect(JSON.stringify(gamesAfterDelete)).not.toEqual(JSON.stringify(gamesBeforeDelete))
             expect(gamesAfterDelete).toHaveLength(gamesBeforeDelete.length - 1)
-            expect(gamesAfterDelete).not.toContain(newGame)
-            expect(platformAfterDelete.games).not.toContain(newGame.id)
+            expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(newGame))
+            expect(JSON.stringify(platformAfterDelete.games)).not.toContain(JSON.stringify(newGame.id))
         })
 
         test('returns 404 if trying to delete a game matching a non-existing id', async () => {
