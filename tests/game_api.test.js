@@ -30,11 +30,19 @@ describe('When there are initially some games and platforms saved', async () => 
             .expect('Content-type', /application\/json/)
 
         const names = response.body.map(game => game.name)
+        const platforms = response.body.map(game => JSON.stringify(game.platform._id))
+        const years = response.body.map(game => game.year)
+        const developers = response.body.map(game => JSON.stringify(game.developers))
+        const publishers = response.body.map(game => JSON.stringify(game.publishers))
 
         expect(games).toHaveLength(3)
 
         games.forEach(game => {
             expect(names).toContain(game.name)
+            expect(platforms).toContain(JSON.stringify(game.platform))
+            expect(years).toContain(game.year)
+            expect(developers).toContain(JSON.stringify(game.developers))
+            expect(publishers).toContain(JSON.stringify(game.publishers))
         })
     })
 
@@ -53,6 +61,10 @@ describe('When there are initially some games and platforms saved', async () => 
 
             expect(body._id).toEqual(game._id)
             expect(body.name).toBe(game.name)
+            expect(JSON.stringify(body.developer)).toBe(JSON.stringify(game.developer))
+            expect(body.year).toBe(game.year)
+            expect(JSON.stringify(body.developers)).toBe(JSON.stringify(game.developers))
+            expect(JSON.stringify(body.publishers)).toBe(JSON.stringify(game.publishers))
         })
 
         test('returns status code 400 with malformatted id', async () => {
@@ -90,16 +102,15 @@ describe('When there are initially some games and platforms saved', async () => 
                     .expect('Content-type', /application\/json/)
 
                 const gamesAfterPost = await gamesInDb()
-
-                expect(gamesAfterPost).toHaveLength(gamesBeforePost.length + 1)
-
-                const ids = gamesAfterPost.map(game => game.id)
-                const names = gamesAfterPost.map(game => game.name)
-                expect(ids).toContain(response.body.id)
-                expect(names).toContain(data.name)
-
+                const game = await findGame(response.body.id)
                 const platformAfterPost = await findPlatform(data.platform)
 
+                expect(gamesAfterPost).toHaveLength(gamesBeforePost.length + 1)
+                expect(game.name).toBe(data.name)
+                expect(JSON.stringify(game.platform)).toBe(JSON.stringify(data.platform))
+                expect(game.year).toBe(data.year)
+                expect(JSON.stringify(game.developers)).toBe(JSON.stringify(data.developers))
+                expect(JSON.stringify(game.publishers)).toBe(JSON.stringify(data.publishers))
                 expect(platformAfterPost.games).toContain(response.body.id)
             }
 
