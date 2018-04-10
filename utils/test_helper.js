@@ -143,6 +143,13 @@ const game2 = {
     developers: ['Bandai', 'Flying Tiger Development'],
     publishers: ['Bandai']
 }
+
+const game3 = {
+    name: 'The King of Fighters 2000',
+    year: 2000,
+    developers: ['SNK'],
+    publishers: ['SNK']
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -155,5 +162,6 @@ module.exports = {
     platform2,
     platform3,
     game1,
-    game2
+    game2,
+    game3
 }

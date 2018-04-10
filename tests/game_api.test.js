@@ -1,6 +1,7 @@
 const supertest = require('supertest')
 const { app, server } = require('../index')
 const Game = require('../models/game')
+const Platform = require('../models/platform')
 const { 
     saveInitialPlatformsAndGames, 
     nonExistingId, 
@@ -9,7 +10,8 @@ const {
     findPlatform,
     findGame,
     game1,
-    game2
+    game2,
+    game3
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -307,6 +309,38 @@ describe('When there are initially some games and platforms saved', async () => 
             invalidPublishers.publishers = [""]
 
             await invalidPutTest(invalidPublishers)
+        })
+    })
+
+    describe('DELETE /api/games/:id', async () => {
+        test('successfully deletes the game matching the id', async () => {
+            const platforms = await platformsInDb()
+            
+            const game = Object.assign({}, game3)
+            const platform = platforms[1]
+            game.platform = platform.id       
+            const newGame = new Game(game)
+            platform.games.push(newGame.id)
+            await newGame.save()
+            await Platform.findByIdAndUpdate(platform.id, platform, { new: true, runValidators: true })
+
+            const gamesBeforeDelete = await gamesInDb()
+            const platformBeforeDelete = await findPlatform(platform.id)
+            const gameIdsBeforeDelete = gamesBeforeDelete.map(game => game.id)
+
+            expect(gameIdsBeforeDelete).toContain(newGame.id)
+            expect(JSON.stringify(platformBeforeDelete.games)).toContain(JSON.stringify(newGame.id))
+
+            await api
+                .delete(`/api/games/${newGame.id}`)
+                .expect(204)
+            
+            const gamesAfterDelete = await gamesInDb()
+            const platformAfterDelete = await findPlatform(platform.id)
+
+            expect(gamesAfterDelete).toHaveLength(gamesBeforeDelete.length - 1)
+            expect(gamesAfterDelete).not.toContain(newGame)
+            expect(platformAfterDelete.games).not.toContain(newGame.id)
         })
     })
 

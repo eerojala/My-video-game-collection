@@ -99,7 +99,12 @@ gamesRouter.put('/:id', async (request, response) => {
 
 gamesRouter.delete('/:id', async (request, response) => {
     try {
-        await Game.findByIdAndRemove(request.params.id)
+        const game = await Game.findByIdAndRemove(request.params.id)
+        const platform = await Platform.findById(game.platform)
+
+        platform.games = platform.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.id))
+
+        await Platform.findByIdAndUpdate(platform.id, platform, { new: true, runValidators: true })
 
         response.status(204).end()
     } catch (exception) {
