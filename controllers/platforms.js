@@ -88,10 +88,16 @@ platformsRouter.put('/:id', async (request, response) => {
 
 platformsRouter.delete('/:id', async (request, response) => {
     try {
-        await Platform.findByIdAndRemove(request.params.id)
-
+        const platform = await Platform.findById(request.params.id)
+        
+        if (platform) {
+            await platform.remove()
+        }
+        
         response.status(204).end()
     } catch (exception) {
+        print(exception)
+
         if (exception.name === 'CastError') {
             response.status(400).json({ error: 'Malformatted platform id' })
         } else {

@@ -1,14 +1,18 @@
 const supertest = require('supertest')
 const { app, server } = require('../index')
 const Platform = require('../models/platform')
+const Game = require('../models/game')
 const { 
     saveInitialPlatformsAndGames, 
     nonExistingId, 
     platformsInDb,
+    gamesInDb,
     findPlatform,
+    findGame,
     platform1,
     platform2,
-    platform3 
+    platform3,
+    game3
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -224,7 +228,7 @@ describe('When there are initially some platforms saved', async () => {
     })
 
     describe('DELETE /api/platforms/:id', async () => {
-        test('successfully deletes the platform matching the id', async () => {
+        test('successfully deletes the platform matching the id and the games associated with it', async () => {
             const newPlatform = new Platform(platform3)
 
             await newPlatform.save()
@@ -244,6 +248,42 @@ describe('When there are initially some platforms saved', async () => {
             expect(JSON.stringify(platformsAfterDelete)).not.toEqual(JSON.stringify(platformsBeforeDelete))
             expect(platformsAfterDelete).toHaveLength(platformsBeforeDelete.length - 1)
             expect(JSON.stringify(platformsAfterDelete)).not.toContain(JSON.stringify(newPlatform))
+        })
+
+        test('successfuly deletes the games that belong to the deleted platform', async () => {
+            const newPlatform = new Platform(platform3)
+
+            await newPlatform.save()
+
+            const game = Object.assign({}, game3)
+            game.platform = newPlatform.id
+            const newGame = new Game(game)
+
+            await newGame.save()
+
+            const savedGame = await findGame(newGame.id)
+
+            expect(JSON.stringify(savedGame.platform)).toBe(JSON.stringify(newPlatform.id))
+
+            newPlatform.games = [newGame.id]
+
+            await newPlatform.save()
+
+            const savedPlatform = await findPlatform(newPlatform.id)
+
+            expect(JSON.stringify(savedPlatform.games)).toContain(JSON.stringify(newGame.id))
+
+            const gamesBeforeDelete = await gamesInDb()
+
+            await api
+                .delete(`/api/platforms/${newPlatform.id}`)
+                .expect(204)
+
+            const gamesAfterDelete = await gamesInDb()
+
+            expect(JSON.stringify(gamesBeforeDelete)).toContain(JSON.stringify(newGame.id))
+            expect(gamesAfterDelete).toHaveLength(gamesBeforeDelete.length - 1)
+            expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(newGame.id))
         })
 
         test('does not affect the database if trying to delete a non-existing platform', async () => {
