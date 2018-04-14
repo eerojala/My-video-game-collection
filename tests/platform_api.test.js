@@ -286,17 +286,19 @@ describe('When there are initially some platforms saved', async () => {
             expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(newGame.id))
         })
 
-        test('does not affect the database if trying to delete a non-existing platform', async () => {
+        test('returns 404 if trying to delete a platform matching an invalid id', async () => {
             const platformsBeforeDelete = await platformsInDb()
 
             const invalidId = await nonExistingId()
 
-            await api
+            const response = await api
                 .delete(`/api/platforms/${invalidId}`)
-                .expect(204)
+                .expect(404)
+                .expect('Content-type', /application\/json/)
 
             const platformsAfterDelete = await platformsInDb()
 
+            expect(response.body.error).toBe('No platform found matching id')
             expect(platformsBeforeDelete).toEqual(platformsAfterDelete)
         })
 

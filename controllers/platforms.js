@@ -92,9 +92,10 @@ platformsRouter.delete('/:id', async (request, response) => {
         
         if (platform) {
             await platform.remove()
+            response.status(204).end()
+        } else {
+            response.status(404).json({error: 'No platform found matching id'})
         }
-        
-        response.status(204).end()
     } catch (exception) {
         print(exception)
 
