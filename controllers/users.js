@@ -36,8 +36,16 @@ usersRouter.get('/:id', async (request, response) => {
 
 usersRouter.post('/', async (request, response) => {
     try {
-        const user = new User(request.body)
-        user.role = 'User'
+        const body = request.body
+        const salt = bcryptjs.genSaltSync(10)
+
+        const passwordHash = await bcryptjs.hashSync(body.password, salt)
+
+        const user = new User({
+            username: body.username,
+            passwordHash,
+            role: 'Member'
+        })
 
         await user.save()
 
