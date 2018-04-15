@@ -60,7 +60,7 @@ describe('When there are initially some platforms saved', async () => {
     
             const body = response.body
         
-            expect(body._id).toEqual(platform._id)
+            expect(body.id).toEqual(platform.id)
             expect(body.name).toEqual(platform.name)
             expect(body.creator).toEqual(platform.creator)
             expect(body.year).toEqual(platform.year)

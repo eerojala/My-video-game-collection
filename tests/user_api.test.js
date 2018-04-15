@@ -34,6 +34,24 @@ describe('When there are initially some users saved', async () => {
         })
     })
 
+    describe('GET /api/users/:id', async () => {
+        test('returns an individual user as JSON', async () => {
+            const users = await usersInDb()
+
+            const user = users[0]
+
+            const response = await api
+                .get(`/api/users/${user.id}`)
+                .expect(200)
+                .expect('Content-type', /application\/json/)
+
+            const body = response.body
+            expect(JSON.stringify(body.id)).toEqual(JSON.stringify(user.id))
+            expect(body.username).toEqual(user.username)
+            expect(body.role).toEqual(user.role)
+        })
+    })
+
     afterAll(() => {
         server.close()
     })

@@ -58,7 +58,7 @@ describe('When there are initially some games and platforms saved', async () => 
 
             const body = response.body
 
-            expect(body._id).toEqual(game._id)
+            expect(body.id).toEqual(game.id)
             expect(body.name).toBe(game.name)
             expect(JSON.stringify(body.developer)).toBe(JSON.stringify(game.developer))
             expect(body.year).toBe(game.year)
