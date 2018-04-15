@@ -1,5 +1,6 @@
 const Platform = require('../models/platform')
 const Game = require('../models/game')
+const User = require('../models/user')
 
 const initialPlatforms = [
     {
@@ -35,6 +36,19 @@ const initialGames = [
     }
 ]
 
+const initialUsers = [
+    {
+        username: 'User1',
+        password: 'wordpass',
+        role: 'Member'
+    },
+    {
+        username: 'User2',
+        password: 'salasana',
+        role: 'Admin'
+    }
+]
+
 const nonExistingId = async () => {
     const platform = new Platform({
         name: 'Xbox',
@@ -58,6 +72,12 @@ const gamesInDb = async () => {
     const games = await Game.find({})
     
     return games.map(Game.format)
+}
+
+const usersInDb = async () => {
+    const users = await User.find({})
+
+    return users.map(User.format)
 }
 
 const saveInitialPlatformsAndGames = async () => {
@@ -96,6 +116,15 @@ const addGamesToPlatforms = async () => {
     platforms[0].games = playstationGames
     platforms[1].games = neoGeoGames
     const promiseArray = platforms.map(platform => platform.save())
+
+    await Promise.all(promiseArray)
+}
+
+const saveInitialUsers = async () => {
+    await User.remove({})
+
+    const userObjects = initialUsers.map(user => new User(user))
+    const promiseArray = userObjects.map(user => user.save())
 
     await Promise.all(promiseArray)
 }
@@ -156,9 +185,11 @@ const game3 = {
  
 module.exports = {
     saveInitialPlatformsAndGames,
+    saveInitialUsers,
     nonExistingId,
     platformsInDb,
     gamesInDb,
+    usersInDb,
     findPlatform,
     findGame,
     platform1,

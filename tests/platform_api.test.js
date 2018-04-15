@@ -37,6 +37,7 @@ describe('When there are initially some platforms saved', async () => {
         const years = body.map(platform => platform.year)
         const games = body.map(platform => JSON.stringify(platform.games.map(game => game._id)))
 
+        expect(body).toHaveLength(platforms.length)
         platforms.forEach(platform => {
             expect(ids).toContain(platform.id)
             expect(names).toContain(platform.name)

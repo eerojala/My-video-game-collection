@@ -1,4 +1,4 @@
-const bcryptjs = require('bryptjs')
+const bcryptjs = require('bcryptjs')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 const print = require('../utils/print')

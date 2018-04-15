@@ -7,6 +7,7 @@ const mongoose = require('mongoose')
 const middleware = require('./utils/middleware')
 const platformsRouter = require('./controllers/platforms')
 const gamesRouter = require('./controllers/games')
+const usersRouter = require('./controllers/users')
 
 const app = express()
 const config = require('./utils/config')
@@ -32,6 +33,7 @@ app.use(middleware.tokenExtractor)
 // Controllers
 app.use('/api/platforms', platformsRouter)
 app.use('/api/games', gamesRouter)
+app.use('/api/users', usersRouter)
 
 // Error middleware
 app.use(middleware.error)

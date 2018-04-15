@@ -7,10 +7,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    passwordHash: {
-        type: String,
-        required: true
-    },
+    passwordHash: String,
     role: {
        type: String,
        enum: ['Admin', 'Member'],
@@ -26,6 +23,6 @@ userSchema.statics.format = (user) => {
     }
 }
 
-const User = mongoose.model('User, userSchema')
+const User = mongoose.model('User', userSchema)
 
 module.exports = User

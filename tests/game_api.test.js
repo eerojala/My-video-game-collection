@@ -35,6 +35,7 @@ describe('When there are initially some games and platforms saved', async () => 
         const developers = response.body.map(game => JSON.stringify(game.developers))
         const publishers = response.body.map(game => JSON.stringify(game.publishers))
 
+        expect(response.body).toHaveLength(games.length)
         games.forEach(game => {
             expect(names).toContain(game.name)
             expect(platforms).toContain(JSON.stringify(game.platform))
