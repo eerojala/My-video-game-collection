@@ -47,7 +47,7 @@ platformsRouter.post('/', async (request, response) => {
     } catch (exception) {
         print(exception)
 
-        if (exception.name === 'ValidationError' || exception.name === 'CastError'){
+        if (exception.name === 'ValidationError' || exception.name === 'CastError') {
             response.status(400).json({ error: 'Invalid platform parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
