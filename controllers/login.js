@@ -32,3 +32,5 @@ loginRouter.post('/', async (request, response) => {
         response.status(500).send({ error: 'Something went wrong...' })
     }
 })
+
+module.exports = loginRouter

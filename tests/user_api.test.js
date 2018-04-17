@@ -128,6 +128,20 @@ describe('When there are initially some users saved', async () => {
 
             await invalidUserTest(noUsername)
         })
+
+        test('fails if no password is provided', async () => {
+            const noPassword = Object.assign({}, user1)
+            noPassword.password = null
+
+            await invalidUserTest(noPassword)
+        })
+
+        test('fails if the password is too short', async () => {
+            const passwordTooShort = Object.assign({}, user1)
+            passwordTooShort.password = 'nope'
+
+            await invalidUserTest(passwordTooShort)
+        })
     })
 
     afterAll(() => {

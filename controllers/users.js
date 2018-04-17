@@ -39,6 +39,10 @@ usersRouter.post('/', async (request, response) => {
         const body = request.body
         const salt = bcryptjs.genSaltSync(10)
 
+        if (!body.password || body.password.length < 5) {
+            return response.status(400).json({ error: 'Invalid user parameters' })
+        }
+
         const passwordHash = await bcryptjs.hashSync(body.password, salt)
 
         const user = new User({
