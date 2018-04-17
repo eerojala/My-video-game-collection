@@ -4,7 +4,9 @@ const User = require('../models/user')
 const {
     saveInitialUsers,
     usersInDb,
-    nonExistingId
+    nonExistingId,
+    findUser,
+    user1
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -67,6 +69,64 @@ describe('When there are initially some users saved', async () => {
             await api
                 .get(`/api/users/${invalidId}`)
                 .expect(404)
+        })
+    })
+
+    describe('POST /api/users', async () => {
+        let invalidUserTest
+
+        beforeAll(async () => {
+            invalidUserTest = async (data) => {
+                const usersBeforePost = await usersInDb()
+
+                const response = await api
+                    .post('/api/users')
+                    .send(data)
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+
+                const usersAfterPost = await usersInDb()
+
+                expect(response.body.error).toBe('Invalid user parameters')
+                expect(usersAfterPost).toEqual(usersBeforePost)
+            }
+        })
+
+        test('succeeds with valid data', async () => {        
+            const newUser = Object.assign({}, user1)
+            newUser.role = 'Admin'
+            
+            const response = await api
+                .post('/api/users')
+                .send(newUser)
+                .expect(200)
+                .expect('Content-type', /application\/json/)
+
+            const userAfterPost = await findUser(response.body.id)
+
+            expect(userAfterPost.username).toBe(newUser.username)
+            expect(userAfterPost.role).toBe('Member') // New users are assigned to be members, even if they provide role: admin in the HTTP request
+        })
+
+        test('fails if username is not unique', async () => {
+            const nonUniqueUsername = Object.assign({}, user1)
+            nonUniqueUsername.username = 'User1'
+
+            await invalidUserTest(nonUniqueUsername)
+        })
+
+        test('fails if username consists of less than 3 characters', async () => {
+            const usernameTooShort = Object.assign({}, user1)
+            usernameTooShort.username = 'AE'
+
+            await invalidUserTest(usernameTooShort)
+        })
+
+        test('fails if no username is provided', async () => {
+            const noUsername = Object.assign({}, user1)
+            noUsername.username = null
+
+            await invalidUserTest(noUsername)
         })
     })
 

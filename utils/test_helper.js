@@ -141,6 +141,12 @@ const findGame = async (id) => {
     return Game.format(game)
 }
 
+const findUser = async (id) => {
+    const user = await User.findById(id)
+
+    return User.format(user)
+}
+
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
@@ -182,6 +188,11 @@ const game3 = {
     developers: ['SNK'],
     publishers: ['SNK']
 }
+
+const user1 = {
+    username: 'User3',
+    password: '123456'
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -192,10 +203,12 @@ module.exports = {
     usersInDb,
     findPlatform,
     findGame,
+    findUser,
     platform1,
     platform2,
     platform3,
     game1,
     game2,
-    game3
+    game3,
+    user1
 }
