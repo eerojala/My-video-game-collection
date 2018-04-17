@@ -3,7 +3,8 @@ const { app, server } = require('../index')
 const User = require('../models/user')
 const {
     saveInitialUsers,
-    usersInDb
+    usersInDb,
+    nonExistingId
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -49,6 +50,23 @@ describe('When there are initially some users saved', async () => {
             expect(JSON.stringify(body.id)).toEqual(JSON.stringify(user.id))
             expect(body.username).toEqual(user.username)
             expect(body.role).toEqual(user.role)
+        })
+
+        test('returns status code 400 with malformatted id', async () => {
+            const response = await api
+                .get('/api/users/Invalid')
+                .expect(400)
+                .expect('Content-type', /application\/json/)
+
+            expect(response.body.error).toBe('Malformatted user id')
+        })
+
+        test('returns status code 404 if no user found matching a valid id', async () => {
+            const invalidId = await nonExistingId()
+
+            await api
+                .get(`/api/users/${invalidId}`)
+                .expect(404)
         })
     })
 

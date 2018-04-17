@@ -27,7 +27,7 @@ usersRouter.get('/:id', async (request, response) => {
         print(exception)
 
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted platform id' })
+            response.status(400).json({ error: 'Malformatted user id' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
