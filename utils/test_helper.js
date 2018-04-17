@@ -38,12 +38,12 @@ const initialGames = [
 
 const initialUsers = [
     {
-        username: 'User1',
+        username: 'notadmin',
         password: 'wordpass',
         role: 'Member'
     },
     {
-        username: 'User2',
+        username: 'adminguy',
         password: 'salasana',
         role: 'Admin'
     }
@@ -190,8 +190,18 @@ const game3 = {
 }
 
 const user1 = {
-    username: 'User3',
+    username: 'User1',
     password: '12345'
+}
+
+const user2 = {
+    username: 'User2',
+    password: '23456'
+}
+
+const user3 = {
+    username: 'User3',
+    password: '34567'
 }
  
 module.exports = {
@@ -210,5 +220,7 @@ module.exports = {
     game1,
     game2,
     game3,
-    user1
+    user1,
+    user2,
+    user3
 }

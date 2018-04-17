@@ -6,13 +6,14 @@ const print = require('../utils/print')
 
 loginRouter.post('/', async (request, response) => {
     try {
-        const body = request.body
+        const password = request.body.password
+        const username = request.body.username
 
-        const user = await User.findOne({ username: body.username })
+        const user = await User.findOne({ username: username })
 
         const passwordCorrect = user === null ?
             false :
-            await bcryptjs.compare(body.password, user.passwordHash)
+            await bcryptjs.compare(password, user.passwordHash)
 
         if (!(user && passwordCorrect)) {
             return response.status(401).send({ error: 'Invalid username or password' })

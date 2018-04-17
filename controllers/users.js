@@ -42,7 +42,7 @@ usersRouter.post('/', async (request, response) => {
         if (!(typeof password === 'string' || password instanceof String) || password.length < 5) {
             return response.status(400).json({ error: 'Password must be a string and have atleast 5 characters' })
         }
-
+        
         const passwordHash = await bcryptjs.hashSync(password, salt)
 
         const user = new User({
@@ -51,9 +51,9 @@ usersRouter.post('/', async (request, response) => {
             role: 'Member'
         })
 
-        await user.save()
+        const savedUser = await user.save()
 
-        response.json(User.format(user))
+        response.json(User.format(savedUser))
     } catch (exception) {
         print(exception)
 
