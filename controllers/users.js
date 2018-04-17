@@ -36,17 +36,17 @@ usersRouter.get('/:id', async (request, response) => {
 
 usersRouter.post('/', async (request, response) => {
     try {
-        const body = request.body
+        const password = request.body.password
         const salt = bcryptjs.genSaltSync(10)
 
-        if (!body.password || body.password.length < 5) {
-            return response.status(400).json({ error: 'Invalid user parameters' })
+        if (!(typeof password === 'string' || password instanceof String) || password.length < 5) {
+            return response.status(400).json({ error: 'Password must be a string and have atleast 5 characters' })
         }
 
-        const passwordHash = await bcryptjs.hashSync(body.password, salt)
+        const passwordHash = await bcryptjs.hashSync(password, salt)
 
         const user = new User({
-            username: body.username,
+            username: request.body.username,
             passwordHash,
             role: 'Member'
         })

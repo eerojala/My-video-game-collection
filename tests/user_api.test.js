@@ -76,7 +76,7 @@ describe('When there are initially some users saved', async () => {
         let invalidUserTest
 
         beforeAll(async () => {
-            invalidUserTest = async (data) => {
+            invalidUserTest = async (data, errorMessage) => {
                 const usersBeforePost = await usersInDb()
 
                 const response = await api
@@ -87,7 +87,7 @@ describe('When there are initially some users saved', async () => {
 
                 const usersAfterPost = await usersInDb()
 
-                expect(response.body.error).toBe('Invalid user parameters')
+                expect(response.body.error).toBe(errorMessage)
                 expect(usersAfterPost).toEqual(usersBeforePost)
             }
         })
@@ -112,35 +112,42 @@ describe('When there are initially some users saved', async () => {
             const nonUniqueUsername = Object.assign({}, user1)
             nonUniqueUsername.username = 'User1'
 
-            await invalidUserTest(nonUniqueUsername)
+            await invalidUserTest(nonUniqueUsername, 'Invalid user parameters')
         })
 
         test('fails if username consists of less than 3 characters', async () => {
             const usernameTooShort = Object.assign({}, user1)
             usernameTooShort.username = 'AE'
 
-            await invalidUserTest(usernameTooShort)
+            await invalidUserTest(usernameTooShort, 'Invalid user parameters')
         })
 
         test('fails if no username is provided', async () => {
             const noUsername = Object.assign({}, user1)
             noUsername.username = null
 
-            await invalidUserTest(noUsername)
+            await invalidUserTest(noUsername, 'Invalid user parameters')
         })
 
         test('fails if no password is provided', async () => {
             const noPassword = Object.assign({}, user1)
             noPassword.password = null
 
-            await invalidUserTest(noPassword)
+            await invalidUserTest(noPassword, 'Password must be a string and have atleast 5 characters')
         })
 
         test('fails if the password is too short', async () => {
             const passwordTooShort = Object.assign({}, user1)
             passwordTooShort.password = 'nope'
 
-            await invalidUserTest(passwordTooShort)
+            await invalidUserTest(passwordTooShort, 'Password must be a string and have atleast 5 characters')
+        })
+
+        test('fails if the password is not a string', async () => {
+            const passwordNotString = Object.assign({}, user1)
+            passwordNotString.password = 2.44444
+
+            await invalidUserTest(passwordNotString, 'Password must be a string and have atleast 5 characters')
         })
     })
 

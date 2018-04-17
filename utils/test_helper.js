@@ -191,7 +191,7 @@ const game3 = {
 
 const user1 = {
     username: 'User3',
-    password: '123456'
+    password: '12345'
 }
  
 module.exports = {
