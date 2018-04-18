@@ -13,7 +13,9 @@ const {
     platform1,
     platform2,
     platform3,
-    game3
+    game3,
+    memberCredentials,
+    adminCredentials
 } = require('../utils/test_helper')
 
 const api = supertest(app)
@@ -118,7 +120,7 @@ describe('When there are initially some platforms saved', async () => {
             expect(platformsAfterPut).toEqual(platformsBeforePut)
         })
 
-        test('DELETE /api/platforms/:id fails', async() => {
+        test('DELETE /api/platforms/:id fails', async () => {
             const platformsBeforeDelete = await platformsInDb()
             
             const response = await api
@@ -133,18 +135,13 @@ describe('When there are initially some platforms saved', async () => {
         })
     })
 
-    describe('and the user is logged in on a regular account', async() => {
+    describe('and the user is logged in on a regular account', async () => {
         let memberToken
 
         beforeAll(async () => {
-            const credentials = {
-                username: 'notadmin',
-                password: 'wordpass'
-            }
-
             const response = await api
                 .post('/api/login')
-                .send(credentials)
+                .send(memberCredentials)
 
             memberToken = response.body.token
         })
@@ -201,14 +198,9 @@ describe('When there are initially some platforms saved', async () => {
         let adminToken
         
         beforeAll(async () => {
-            const credentials = {
-                username: 'adminguy',
-                password: 'salasana'
-            }
-
             const response = await api
                 .post('/api/login')
-                .send(credentials)
+                .send(adminCredentials)
 
             adminToken = response.body.token
         })

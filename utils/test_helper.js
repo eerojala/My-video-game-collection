@@ -197,6 +197,16 @@ const user1 = {
     username: 'User1',
     password: '12345'
 }
+
+const memberCredentials = {
+    username: initialUsers[0].username,
+    password: initialUsers[0].password
+}
+
+const adminCredentials = {
+    username: initialUsers[1].username,
+    password: initialUsers[1].password
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -214,5 +224,7 @@ module.exports = {
     game1,
     game2,
     game3,
-    user1
+    user1,
+    memberCredentials,
+    adminCredentials
 }

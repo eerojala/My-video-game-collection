@@ -1,7 +1,7 @@
 const gamesRouter = require('express').Router()
 const Game = require('../models/game')
 const Platform = require('../models/platform')
-const print = require('../utils/print')
+const { print, adminLoggedIn } = require('../utils/controller_helper')
 
 gamesRouter.get('/', async (request, response) => {
     try {
@@ -40,6 +40,10 @@ gamesRouter.get('/:id', async (request, response) => {
 
 gamesRouter.post('/', async (request, response) => {
     try {
+        if (await adminLoggedIn(request.token) === false) {
+            return response.status(401).json({ error: 'Must be logged in as admin to post a new game' })
+        }
+
         const game = new Game(request.body)
 
         const platform = await Platform.findById(game.platform)
@@ -68,6 +72,10 @@ gamesRouter.post('/', async (request, response) => {
 
 gamesRouter.put('/:id', async (request, response) => {
     try {
+        if (await adminLoggedIn(request.token) === false) {
+            return response.status(401).json({ error: 'Must be logged in as admin to update a game' })
+        }
+
         const body = request.body
         const game = await Game.findById(request.params.id)
 
@@ -99,6 +107,10 @@ gamesRouter.put('/:id', async (request, response) => {
 
 gamesRouter.delete('/:id', async (request, response) => {
     try {
+        if (await adminLoggedIn(request.token) === false) {
+            return response.status(401).json({ error: 'Must be logged in as admin to delete a game' })
+        }
+
         const game = await Game.findByIdAndRemove(request.params.id)
 
         if (!game) {
