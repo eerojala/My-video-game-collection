@@ -9,19 +9,23 @@ const print = (message) => {
 }
 
 const adminLoggedIn = async (token) => {
-    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!token) {
+        return false
+    }
 
-    if (!token || !decodedToken.id) {
+    const decodedToken = await jwt.verify(token, process.env.SECRET)
+
+    if (!decodedToken.id) {
         return false
     }
 
     const loggedInUser = await User.findById(decodedToken.id)
 
-    return !loggedInUser || loggedInUser.role !== 'Admin'
+    return loggedInUser.role === 'Admin'
 }
 
 const hashPassword = async (password) => {
-    const salt = bcryptjs.genSaltSync(10)
+    const salt = await bcryptjs.genSaltSync(10)
     
     return await bcryptjs.hashSync(password, salt)
 }

@@ -39,7 +39,7 @@ platformsRouter.get('/:id', async (request, response) => {
 
 platformsRouter.post('/', async (request, response) => {
     try {
-        if (adminLoggedIn(request.token)) {
+        if (await adminLoggedIn(request.token) === false) {
             return response.status(401).json({ error: 'Must be logged in as admin to post a new platform' })
         }
 
@@ -61,6 +61,10 @@ platformsRouter.post('/', async (request, response) => {
 
 platformsRouter.put('/:id', async (request, response) => {
     try {
+        if (await adminLoggedIn(request.token) === false) {
+            return response.status(401).json({ error: 'Must be logged in as admin to update a platform' })
+        }
+
         const body = request.body
 
         const platform = await Platform.findById(request.params.id)
@@ -92,6 +96,10 @@ platformsRouter.put('/:id', async (request, response) => {
 
 platformsRouter.delete('/:id', async (request, response) => {
     try {
+        if (await adminLoggedIn(request.token) === false) {
+            return response.status(401).json({ error: 'Must be logged in as admin to delete a platform' })
+        }
+
         const platform = await Platform.findById(request.params.id)
         
         if (platform) {
