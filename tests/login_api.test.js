@@ -11,20 +11,13 @@ const api = supertest(app)
 
 describe('When the user wants to login to /api/login', async () => {
     beforeAll(async () => {
-        await User.remove({})
+        await saveInitialUsers()
     })
 
     test('they succeed if they provide correct login credentials', async () => {
-        const user = Object.assign({}, user2)
-
-        await api
-            .post('/api/users')
-            .send(user)
-            .expect(200)
-
         const credentials = {
-            username: user.username,
-            password: user.password
+            username: 'notadmin',
+            password: 'wordpass'
         }
 
         const response = await api
@@ -37,16 +30,9 @@ describe('When the user wants to login to /api/login', async () => {
     })
 
     test('they fail if the provide incorrect login credentials', async () => {
-        const user = Object.assign({}, user3)
-
-        await api
-            .post('/api/users')
-            .send(user)
-            .expect(200)
-
         const credentials = {
-            username: user3.username,
-            password: user2.password
+            username: 'notadmin',
+            password: 'salasana'
         }
 
         const response = await api

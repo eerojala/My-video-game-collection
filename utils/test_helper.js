@@ -1,6 +1,7 @@
 const Platform = require('../models/platform')
 const Game = require('../models/game')
 const User = require('../models/user')
+const { hashPassword } = require('./controller_helper')
 
 const initialPlatforms = [
     {
@@ -122,6 +123,9 @@ const addGamesToPlatforms = async () => {
 
 const saveInitialUsers = async () => {
     await User.remove({})
+
+    initialUsers[0].passwordHash = await hashPassword(initialUsers[0].password)
+    initialUsers[1].passwordHash = await hashPassword(initialUsers[1].password)
 
     const userObjects = initialUsers.map(user => new User(user))
     const promiseArray = userObjects.map(user => user.save())
