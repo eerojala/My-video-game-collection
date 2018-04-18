@@ -197,16 +197,6 @@ const user1 = {
     username: 'User1',
     password: '12345'
 }
-
-const user2 = {
-    username: 'User2',
-    password: '23456'
-}
-
-const user3 = {
-    username: 'User3',
-    password: '34567'
-}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -224,7 +214,5 @@ module.exports = {
     game1,
     game2,
     game3,
-    user1,
-    user2,
-    user3
+    user1
 }

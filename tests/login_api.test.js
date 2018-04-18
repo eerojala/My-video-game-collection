@@ -1,11 +1,7 @@
 const supertest = require('supertest')
 const { app, server } = require('../index')
 const User = require('../models/user')
-const {
-    saveInitialUsers,
-    user2,
-    user3
-} = require('../utils/test_helper')
+const { saveInitialUsers } = require('../utils/test_helper')
 
 const api = supertest(app)
 
