@@ -1,7 +1,7 @@
 const bcryptjs = require('bcryptjs')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
-const print = require('../utils/print')
+const { print, hashPassword } = require('../utils/controller_helper')
 
 usersRouter.get('/', async (request, response) => {
     try {
@@ -37,13 +37,12 @@ usersRouter.get('/:id', async (request, response) => {
 usersRouter.post('/', async (request, response) => {
     try {
         const password = request.body.password
-        const salt = bcryptjs.genSaltSync(10)
 
         if (!(typeof password === 'string' || password instanceof String) || password.length < 5) {
             return response.status(400).json({ error: 'Password must be a string and have atleast 5 characters' })
         }
         
-        const passwordHash = await bcryptjs.hashSync(password, salt)
+        const passwordHash = await hashPassword(password)
 
         const user = new User({
             username: request.body.username,

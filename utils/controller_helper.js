@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
-const User = require('../models/User')
+const bcryptjs = require('bcryptjs')
+const User = require('../models/user')
 
 const print = (message) => {
     if (process.env.NODE_ENV !== 'test') {
@@ -14,12 +15,16 @@ const adminLoggedIn = async (token) => {
         return false
     }
 
-    const user = await User.findById(decodedToken.id)
+    const loggedInUser = await User.findById(decodedToken.id)
 
-    return !user || user.role !== 'Admin'
+    return !loggedInUser || loggedInUser.role !== 'Admin'
+}
+
+const hashPassword = async (password) => {
+    const salt = bcryptjs.genSaltSync(10)
+    
+    return await bcryptjs.hashSync(password, salt)
 }
 
 
-
-
-module.exports = { print, adminLoggedIn }
+module.exports = { print, adminLoggedIn, hashPassword }

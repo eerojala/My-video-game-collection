@@ -1,8 +1,6 @@
 const platformsRouter = require('express').Router()
 const Platform = require('../models/platform')
-const User = require('../models/user')
-const { print, adminLogged } = require('../utils/print')
-const adminLogged
+const { print, adminLoggedIn } = require('../utils/controller_helper')
 
 platformsRouter.get('/', async (request, response) => {
     try {
@@ -41,8 +39,8 @@ platformsRouter.get('/:id', async (request, response) => {
 
 platformsRouter.post('/', async (request, response) => {
     try {
-        if (!adminLogged(request.token)) {
-            return response.status(401).json({ error: 'Must be logged in with an admin account to post a new platform' })
+        if (adminLoggedIn(request.token)) {
+            return response.status(401).json({ error: 'Must be logged in as admin to post a new platform' })
         }
 
         const platform = new Platform(request.body)
@@ -63,10 +61,6 @@ platformsRouter.post('/', async (request, response) => {
 
 platformsRouter.put('/:id', async (request, response) => {
     try {
-        if (!adminLogged(request.token)) {
-            return response.status(401).json({ error: 'Must be logged in with an admin account to update a platform' })
-        }
-
         const body = request.body
 
         const platform = await Platform.findById(request.params.id)
@@ -98,10 +92,6 @@ platformsRouter.put('/:id', async (request, response) => {
 
 platformsRouter.delete('/:id', async (request, response) => {
     try {
-        if (!adminLogged(request.token)) {
-            return response.status(401).json({ error: 'Must be logged in with an admin account to delete a platform' })
-        }
-
         const platform = await Platform.findById(request.params.id)
         
         if (platform) {
