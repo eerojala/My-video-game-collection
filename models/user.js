@@ -12,14 +12,16 @@ const userSchema = new mongoose.Schema({
        type: String,
        enum: ['Admin', 'Member'],
        required: true
-    }
+    },
+    collection: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CollectionItem' }]
 })
 
 userSchema.statics.format = (user) => {
     return {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        collection: user.collection
     }
 }
 
