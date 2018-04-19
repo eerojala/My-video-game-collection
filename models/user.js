@@ -21,7 +21,7 @@ userSchema.statics.format = (user) => {
         id: user.id,
         username: user.username,
         role: user.role,
-        games: user.collection
+        games: user.games
     }
 }
 

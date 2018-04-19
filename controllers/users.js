@@ -43,7 +43,8 @@ usersRouter.post('/', async (request, response) => {
         }
         
         const passwordHash = await hashPassword(password)
-
+        console.log(passwordHash)
+        console.log(request.body)
         const user = new User({
             username: request.body.username,
             passwordHash,
