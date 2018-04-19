@@ -1,4 +1,4 @@
-const print = require('./print')
+const { print } = require('./controller_helper')
 
 const logger = (request, response, next) => {
     print(`Method: ${request.method}`)
