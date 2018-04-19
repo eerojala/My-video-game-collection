@@ -8,6 +8,7 @@ const middleware = require('./utils/middleware')
 const platformsRouter = require('./controllers/platforms')
 const gamesRouter = require('./controllers/games')
 const usersRouter = require('./controllers/users')
+const userGamesRouter = require('./controllers/user_games')
 const loginRouter = require('./controllers/login')
 
 const app = express()
@@ -35,6 +36,7 @@ app.use(middleware.tokenExtractor)
 app.use('/api/platforms', platformsRouter)
 app.use('/api/games', gamesRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/users/:id/games', userGamesRouter)
 app.use('/api/login', loginRouter)
 
 // Error middleware

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const collectionItemSchema = new mongoose.Schema({
+const userGameSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId, ref: 'User',
         required: true
@@ -21,16 +21,16 @@ const collectionItemSchema = new mongoose.Schema({
     }
 })
 
-collectionItemSchema.statics.format = (collectionItem) => {
+userGameSchema.statics.format = (userGame) => {
     return {
-        id: collectionItem.id,
-        user: collectionItem.user,
-        game: collectionItem.game,
-        status: collectionItem.status,
-        score: collectionItem.score
+        id: userGame.id,
+        user: userGame.user,
+        game: userGame.game,
+        status: userGame.status,
+        score: userGame.score
     }
 }
 
-const CollectionItem = mongoose.model('CollectionItem', collectionItemSchema)
+const UserGame = mongoose.model('UserGame', userGameSchema)
 
-model.exports = CollectionItem
+module.exports = UserGame
