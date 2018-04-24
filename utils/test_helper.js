@@ -1,6 +1,7 @@
 const Platform = require('../models/platform')
 const Game = require('../models/game')
 const User = require('../models/user')
+const UserGame = require('../models/user_game')
 const { hashPassword } = require('./controller_helper')
 
 const initialPlatforms = [
@@ -81,6 +82,12 @@ const usersInDb = async () => {
     return users.map(User.format)
 }
 
+const userGamesInDb = async () => {
+    const userGames = await UserGame.find({})
+
+    return userGames.map(UserGame.format)
+}
+
 const saveInitialPlatformsAndGames = async () => {
     await Platform.remove({})
     await Game.remove({})
@@ -133,38 +140,51 @@ const saveInitialUsers = async () => {
     await Promise.all(promiseArray)
 }
 
-const saveInitialUserGames = async () => {
+const initializeTestDb = async () => {
     await saveInitialPlatformsAndGames()
     await saveInitialUsers()
-    const games = await gamesInDb()
-    const users = await usersInDb()
-    
-    const initialUserGames = [
-        {
-            user: users[0].id,
-            game: game[0].id,
-            status: 'Unfinished',
-            score: 4
-        },
-        {
-            user: users[0].id,
-            game: game[1].id,
-            status: 'Beaten',
-            score: 5
-        },
-        {
-            user: users[1].id,
-            game: game[1].id,
-            status: 'Completed',
-            score: 4
-        }
-    ]
-
-    const userGameObjects = initialUserGames.map(userGame => new UserGame(userGame))
-    const promiseArray = userGameObjects.map(userGame => userGame.save())
-
-    await Promise.all(promiseArray)
+    await saveInitialUserGames()
 }
+
+const saveInitialUserGames = async () => {
+    const games = await gamesInDb()
+    const users = await User.find({})
+
+    const user1 = users[0]
+    const user2 = users[1]
+    const userGame1 = new UserGame({
+        user: user1.id,
+        game: game[0].id,
+        status: 'Unfinished',
+        score: 4
+    })
+
+    const userGame2 = new UserGame({
+        user: user1.id,
+        game: game[1].id,
+        status: 'Beaten',
+        score: 5
+    })
+
+    const userGame3 = new UserGame({
+        user: user2.id,
+        game: game[1].id,
+        status: 'Completed',
+        score: 4
+    })
+
+    await userGame1.save()
+    await userGame2.save()
+    await userGame3.save()
+    
+    user1.games = [userGame1._id, userGame2._id]
+    user2.games = [userGame3._id]
+
+    await user1.save()
+    await user2.save()
+}
+
+const addG
 
 const findPlatform = async (id) => {
     const platform = await Platform.findById(id)
@@ -244,11 +264,12 @@ const adminCredentials = {
 module.exports = {
     saveInitialPlatformsAndGames,
     saveInitialUsers,
-    saveInitialUserGames,
+    initializeTestDb,
     nonExistingId,
     platformsInDb,
     gamesInDb,
     usersInDb,
+    userGamesInDb,
     findPlatform,
     findGame,
     findUser,
