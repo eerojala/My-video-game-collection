@@ -184,8 +184,6 @@ const saveInitialUserGames = async () => {
     await user2.save()
 }
 
-const addG
-
 const findPlatform = async (id) => {
     const platform = await Platform.findById(id)
     

@@ -36,7 +36,7 @@ app.use(middleware.tokenExtractor)
 app.use('/api/platforms', platformsRouter)
 app.use('/api/games', gamesRouter)
 app.use('/api/users', usersRouter)
-app.use('/api/users/:id/games', userGamesRouter)
+app.use('/api/users/:userId/games', userGamesRouter)
 app.use('/api/login', loginRouter)
 
 // Error middleware

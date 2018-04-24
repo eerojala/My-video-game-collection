@@ -7,7 +7,7 @@ const { print, correctUserLoggedIn } = require('../utils/controller_helper')
 userGamesRouter.get('/', async (request, response) => {
     try {
         const games = await UserGame
-            .find({ user: request.params.id })
+            .find({ user: request.params.userId })
             .populate('game', { __v:0 })
 
         if (games) {
@@ -38,11 +38,11 @@ userGamesRouter.post('/', async (request, response) => {
             return response.status(400).json({ error: 'No game found matching given game id' })
         }
 
-        const userGame = Object.assign({user: request.params.id}, request.body)
+        const userGame = Object.assign({user: request.params.userId}, request.body)
         const newUserGame = new User(userGame)
 
         const savedUserGame = await newUserGame.save()
-        const user = await User.findById(request.params.id)
+        const user = await User.findById(request.params.userId)
 
         user.games = user.games.concat(savedUserGame._id)
 
@@ -74,7 +74,7 @@ userGamesRouter.put('/:userGameId', async (request, response) => {
 
         const changesToUserGame = Object.assign({}, request.body)
 
-        const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.id, changesToUserGame, { new: true, runValidators: true })
+        const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.userId, changesToUserGame, { new: true, runValidators: true })
 
     } catch (exception) {
         print(exception)
@@ -99,7 +99,7 @@ userGamesRouter.delete('/:userGameId', async (request, response) => {
             return response.status(404).json({ error: 'No user game found matching id' })
         }
 
-        const user = await User.findById(request.params.id)
+        const user = await User.findById(request.params.userId)
 
         user.games = user.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.userGameId))
 
