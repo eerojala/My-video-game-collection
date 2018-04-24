@@ -6,6 +6,12 @@ const { print, correctUserLoggedIn } = require('../utils/controller_helper')
 
 userGamesRouter.get('/', async (request, response) => {
     try {
+        const user = await User.findById(request.params.userId)
+        console.log(request.params)
+        if (!user) {
+            return response.status(404).json({ error: 'No user found matching given user id' })
+        }
+
         const games = await UserGame
             .find({ user: request.params.userId })
             .populate('game', { __v:0 })

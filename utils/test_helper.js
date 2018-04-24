@@ -154,21 +154,21 @@ const saveInitialUserGames = async () => {
     const user2 = users[1]
     const userGame1 = new UserGame({
         user: user1.id,
-        game: game[0].id,
+        game: games[0].id,
         status: 'Unfinished',
         score: 4
     })
 
     const userGame2 = new UserGame({
         user: user1.id,
-        game: game[1].id,
+        game: games[1].id,
         status: 'Beaten',
         score: 5
     })
 
     const userGame3 = new UserGame({
         user: user2.id,
-        game: game[1].id,
+        game: games[1].id,
         status: 'Completed',
         score: 4
     })
