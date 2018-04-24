@@ -133,6 +133,39 @@ const saveInitialUsers = async () => {
     await Promise.all(promiseArray)
 }
 
+const saveInitialUserGames = async () => {
+    await saveInitialPlatformsAndGames()
+    await saveInitialUsers()
+    const games = await gamesInDb()
+    const users = await usersInDb()
+    
+    const initialUserGames = [
+        {
+            user: users[0].id,
+            game: game[0].id,
+            status: 'Unfinished',
+            score: 4
+        },
+        {
+            user: users[0].id,
+            game: game[1].id,
+            status: 'Beaten',
+            score: 5
+        },
+        {
+            user: users[1].id,
+            game: game[1].id,
+            status: 'Completed',
+            score: 4
+        }
+    ]
+
+    const userGameObjects = initialUserGames.map(userGame => new UserGame(userGame))
+    const promiseArray = userGameObjects.map(userGame => userGame.save())
+
+    await Promise.all(promiseArray)
+}
+
 const findPlatform = async (id) => {
     const platform = await Platform.findById(id)
     
@@ -211,6 +244,7 @@ const adminCredentials = {
 module.exports = {
     saveInitialPlatformsAndGames,
     saveInitialUsers,
+    saveInitialUserGames,
     nonExistingId,
     platformsInDb,
     gamesInDb,
