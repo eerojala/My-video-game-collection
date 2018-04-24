@@ -49,7 +49,7 @@ gamesRouter.post('/', async (request, response) => {
         const platform = await Platform.findById(game.platform)
 
         if (!platform) {
-            return response.status(400).json({ error: 'No platform found' })
+            return response.status(400).json({ error: 'No platform found matching given platform id' })
         }
 
         const savedGame = await game.save()
@@ -125,6 +125,8 @@ gamesRouter.delete('/:id', async (request, response) => {
 
         response.status(204).end()
     } catch (exception) {
+        print(exception)
+
         if (exception.name === 'CastError') {
             response.status(400).json({ error: 'Malformatted game id' })
         } else {

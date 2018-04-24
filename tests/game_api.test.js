@@ -282,7 +282,7 @@ describe('When there are initially some games and platforms saved', async () => 
     
                 const gamesAfterPost = await gamesInDb()
     
-                expect(response.body.error).toBe('No platform found')
+                expect(response.body.error).toBe('No platform found matching given platform id')
                 expect(gamesBeforePost).toEqual(gamesAfterPost)
             })
     

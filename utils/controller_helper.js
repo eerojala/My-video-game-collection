@@ -8,20 +8,38 @@ const print = (message) => {
     }
 }
 
-const adminLoggedIn = async (token) => {
+const getLoggedInUser = async (token) => {
     if (!token) {
-        return false
+        return null
     }
 
     const decodedToken = await jwt.verify(token, process.env.SECRET)
 
     if (!decodedToken.id) {
+        return null
+    }
+
+    return await User.findById(decodedToken.id)
+}
+
+const adminLoggedIn = async (token) => {
+    const loggedInUser = await getLoggedInUser(token)
+
+    if (!loggedInUser) {
         return false
     }
 
-    const loggedInUser = await User.findById(decodedToken.id)
-
     return loggedInUser.role === 'Admin'
+}
+
+const correctUserLoggedIn = async (token, id) => {
+    const loggedInUser = await getLoggedInUser(token)
+
+    if (!loggedInUser) {
+        return false
+    }
+
+    return loggedInUser.id === id
 }
 
 const hashPassword = async (password) => {
@@ -31,4 +49,4 @@ const hashPassword = async (password) => {
 }
 
 
-module.exports = { print, adminLoggedIn, hashPassword }
+module.exports = { print, adminLoggedIn, correctUserLoggedIn, hashPassword }
