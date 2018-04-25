@@ -21,15 +21,23 @@ userGamesRouter.get('/', async (request, response) => {
 userGamesRouter.post('/', async (request, response) => {
     try {
         const loggedInUserId = await getLoggedInUserId(request.token)
-        const user = await User.findById(loggedInUserId)
-        const game = await Game.findById(body.game)
-
-        if (!user) {
+        
+        if (!loggedInUserId) {
             return response.status(401).json({ error: 'You must be logged in to add a game to your collection' })
         }
 
+        const user = await User
+            .findById(loggedInUserId)
+            .populate('ownedGames', { game: 1 })
+
+        const game = await Game.findById(body.game)
+
         if (!game) {
             return response.status(400).json({ error: 'No game found matching given game id' })
+        }
+
+        if (user.ownedGames.filter(game => JSON.stringify(game)) === JSON.stringify(game.id).length > 0) {
+            return response.status(400).json({ error: 'This user already has the game matching the game id in their collection' })
         }
 
         const userGame = Object.assign({user: loggedInUserId}, request.body)
@@ -37,7 +45,7 @@ userGamesRouter.post('/', async (request, response) => {
 
         const savedUserGame = await newUserGame.save()
 
-        user.games = user.games.concat(savedUserGame._id)
+        user.ownedGames = user.games.concat(savedUserGame._id)
 
         await user.save()
 
@@ -99,7 +107,7 @@ userGamesRouter.delete('/:id', async (request, response) => {
 
         const user = await User.findById(userGame.user)
 
-        user.games = user.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.userGameId))
+        user.ownedGames = user.ownedGames.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.id))
 
         await User.findByIdAndUpdate(user.id, user, { new: true, runValidators: true })
 

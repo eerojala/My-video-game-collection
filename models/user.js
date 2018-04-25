@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
        enum: ['Admin', 'Member'],
        required: true
     },
-    games: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserGame' }]
+    ownedGames: [{ type: mongoose.Schema.Types.ObjectId, ref: 'UserGame' }]
 })
 
 userSchema.statics.format = (user) => {
@@ -21,7 +21,7 @@ userSchema.statics.format = (user) => {
         id: user.id,
         username: user.username,
         role: user.role,
-        games: user.games
+        ownedGames: user.ownedGames
     }
 }
 

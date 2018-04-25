@@ -179,8 +179,8 @@ const saveInitialUserGames = async () => {
     await userGame2.save()
     await userGame3.save()
     
-    user1.games = [userGame1._id, userGame2._id]
-    user2.games = [userGame3._id]
+    user1.ownedGames = [userGame1._id, userGame2._id]
+    user2.ownedGames = [userGame3._id]
 
     await user1.save()
     await user2.save()

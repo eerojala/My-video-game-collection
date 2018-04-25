@@ -5,6 +5,7 @@ const User = require('../models/user')
 const {
     initializeTestDb,
     userGamesInDb,
+    gamesInDb,
     usersInDb
 } = require('../utils/test_helper')
 
@@ -36,6 +37,32 @@ describe('When there are initially some user game collection entries saved', asy
             expect(games).toContain(JSON.stringify(userGame.game))
             expect(statuses).toContain(userGame.status)
             expect(scores).toContain(userGame.score)
+        })
+    })
+
+    describe('and the user is not logged in', async () => {
+        test('POST /api/usergames fails', async () => {
+            const userGamesBeforePost = await userGamesInDb()
+            const users = await usersInDb()
+            const games = await gamesInDb()
+
+            const newUserGame = {
+                user: users[0].id,
+                game: games[2].id,
+                status: 'Unfinished',
+                score: 3
+            }
+
+            const response = await api
+                .post('/api/usergames')
+                .send(newUserGame)
+                .expect(401)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterPost = await userGamesInDb()
+
+            expect(userGamesAfterPost).toEqual(userGamesBeforePost)
+            expect(response.body.error).toBe('You must be logged in to add a game to your collection')
         })
     })
 
