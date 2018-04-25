@@ -9,21 +9,18 @@ const {
     usersInDb,
     findUserGame,
     findUser,
-    memberCredentials
+    memberCredentials,
+    nonExistingId
 } = require('../utils/test_helper')
 
 const api = supertest(app)
 
 describe('When there are initially some user game collection entries saved', async () => {
-    let userGame, firstUserId, thirdGameId
+    let userGame
 
     beforeAll(async () => {
         await initializeTestDb()
-        const users = await usersInDb()
-        const games = await gamesInDb()
 
-        firstUserId = users[0].id
-        thirdGameId = games[2].id
         userGame = {
             status: 'Unfinished',
             score: 3
@@ -57,8 +54,9 @@ describe('When there are initially some user game collection entries saved', asy
     describe('and the user is not logged in', async () => {
         test('POST /api/usergames fails', async () => {
             const userGamesBeforePost = await userGamesInDb()
+            const usersBeforePost = await usersInDb()
 
-            const newUserGame = Object.assign({ user: firstUserId, game: thirdGameId }, userGame)
+            const newUserGame = Object.assign({}, userGame)
 
             const response = await api
                 .post('/api/usergames')
@@ -67,28 +65,65 @@ describe('When there are initially some user game collection entries saved', asy
                 .expect('Content-type', /application\/json/)
 
             const userGamesAfterPost = await userGamesInDb()
+            const usersAfterPost = await usersInDb()
 
             expect(userGamesAfterPost).toEqual(userGamesBeforePost)
             expect(response.body.error).toBe('You must be logged in to add a game to your collection')
+            expect(usersAfterPost).toEqual(usersBeforePost)
         })
     })
 
     describe('and the user is logged in with the correct account', async () => {
-        let userToken
+        let userToken, loggedInUserId, ownedGameIds, notOwnedGameIds
         
         beforeAll(async () => {
             const response = await api
                 .post('/api/login')
                 .send(memberCredentials)
 
-            userToken = response.body.token
+            userToken = response.body.token 
+
+            const loggedInUser = await User.findOne({ username: memberCredentials.username })
+
+            loggedInUserId = loggedInUser._id
+
+            const userGames = await userGamesInDb()
+     
+            const ownedGames = userGames.filter(userGame => JSON.stringify(userGame.user) === JSON.stringify(loggedInUserId))
+            ownedGameIds = ownedGames.map(ownedGame => ownedGame.game)
+
+            const notOwnedGames = userGames.filter(userGame => JSON.stringify(userGame.user) !== JSON.stringify(loggedInUserId))
+            notOwnedGameIds = notOwnedGames.map(notOwnedGame => notOwnedGame.game)
         })
 
         describe('POST /api/usergames ', async () => {
+            let invalidPostTest
+
+            beforeAll(async () => {
+                invalidPostTest = async (data, errorMessage = 'Invalid user game parameters')  => {
+                    const userGamesBeforePost = await userGamesInDb()
+                    const usersBeforePost = await usersInDb()
+
+                    const response = await api
+                        .post('/api/usergames')
+                        .set('Authorization', 'bearer ' + userToken)
+                        .send(data)
+                        .expect(400)
+                        .expect('Content-type', /application\/json/)
+
+                    const userGamesAfterPost = await userGamesInDb()
+                    const usersAfterPost = await usersInDb()
+
+                    expect(response.body.error).toBe(errorMessage)
+                    expect(userGamesBeforePost).toEqual(userGamesAfterPost)
+                    expect(usersBeforePost).toEqual(usersAfterPost)
+                } 
+            })
+
             test('succeeds with valid data', async () => {
                 const userGamesBeforePost = await userGamesInDb()
     
-                const newUserGame = Object.assign({ user: firstUserId, game: thirdGameId }, userGame)
+                const newUserGame = Object.assign({ game: notOwnedGameIds[0] }, userGame)
                 
                 const response = await api
                     .post('/api/usergames')
@@ -98,15 +133,76 @@ describe('When there are initially some user game collection entries saved', asy
                     .expect('Content-type', /application\/json/)
 
                 const userGamesAfterPost = await userGamesInDb()
-                const userAfterPost = await findUser(firstUserId)
+                const userAfterPost = await findUser(loggedInUserId)
                 const postedUserGame = await findUserGame(response.body.id)
 
                 expect(userGamesAfterPost).toHaveLength(userGamesBeforePost.length + 1)
-                expect(JSON.stringify(postedUserGame.user)).toBe(JSON.stringify(newUserGame.user))
+                expect(JSON.stringify(postedUserGame.user)).toBe(JSON.stringify(loggedInUserId))
                 expect(JSON.stringify(postedUserGame.game)).toBe(JSON.stringify(newUserGame.game))
                 expect(postedUserGame.status).toBe(newUserGame.status)
                 expect(postedUserGame.score).toBe(newUserGame.score)
                 expect(JSON.stringify(userAfterPost.ownedGames)).toContain(JSON.stringify(postedUserGame.id))
+            })
+
+            test('fails with nonexisting game id', async () => {
+                const nonExistingGameId = await nonExistingId()
+
+                const nonExistingGame = Object.assign({ game: nonExistingGameId }, userGame)
+
+                await invalidPostTest(nonExistingGame, 'No game found matching given game id')
+            })
+
+            test('fails with invalid game id', async () => {
+                const invalidGameId = Object.assign({ game: 'Invalid' }, userGame)
+
+                await invalidPostTest(invalidGameId)
+            })
+
+            test('fails with no game id provided', async () => {
+                const noGame = Object.assign({}, userGame)
+
+                await invalidPostTest(noGame, 'No game found matching given game id')
+            })
+
+            test('fails if the user already owns the specified game', async () => {
+                const duplicateGame = Object.assign({ game: ownedGameIds[0] }, userGame)
+
+                await invalidPostTest(duplicateGame, 'This user already has the game matching the game id in their collection')
+            })
+
+            test('fails with invalid status', async () => {
+                const invalidStatus = Object.assign({ game: notOwnedGameIds[1] }, userGame)
+                invalidStatus.status = 'Invalid'
+
+                await invalidPostTest(invalidStatus)
+            })
+
+            test('fails with no status provided', async () => {
+                const noStatus = Object.assign({ game: notOwnedGameIds[1] }, userGame)
+                noStatus.status = null
+
+                await invalidPostTest(noStatus)
+            })
+
+            test('fails with non-integer score', async () => {
+                const nonIntegerScore = Object.assign({ game: notOwnedGameIds[1] }, userGame)
+                nonIntegerScore.score = 2.5
+
+                await invalidPostTest(nonIntegerScore)
+            })
+
+            test('fails with integer score above 5', async () => {
+                const scoreAboveFive = Object.assign({ game: notOwnedGameIds[1] }, userGame)
+                scoreAboveFive.score = 6
+                
+                await invalidPostTest(scoreAboveFive)
+            })
+
+            test('fails with score below zero', async () => {
+                const scoreBelowZero = Object.assign({ game: notOwnedGameIds[1] }, userGame)
+                scoreBelowZero.score = -1
+
+                await invalidPostTest(scoreBelowZero)
             })
         })
     })

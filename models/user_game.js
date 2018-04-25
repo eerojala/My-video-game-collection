@@ -17,7 +17,11 @@ const userGameSchema = new mongoose.Schema({
     score: {
         type: Number,
         min: 0,
-        max: 5
+        max: 5,
+        validate: {
+            validator: Number.isInteger,
+            message: 'Not an integer'
+        }
     }
 })
 

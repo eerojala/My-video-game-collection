@@ -20,26 +20,31 @@ userGamesRouter.get('/', async (request, response) => {
 
 userGamesRouter.post('/', async (request, response) => {
     try {
+        const body = request.body
+
         const loggedInUserId = await getLoggedInUserId(request.token)
 
         if (!loggedInUserId) {
             return response.status(401).json({ error: 'You must be logged in to add a game to your collection' })
-        }
+        } 
 
         const user = await User
             .findById(loggedInUserId)
             .populate('ownedGames', { game: 1 })
-        const game = await Game.findById(request.body.game)
+
+        const game = await Game.findById(body.game)
 
         if (!game) {
             return response.status(400).json({ error: 'No game found matching given game id' })
         }
 
-        if (user.ownedGames.filter(game => JSON.stringify(game)) === JSON.stringify(game.id).length > 0) {
+        const ownedGameIds = user.ownedGames.map(ownedGame => ownedGame.game)
+
+        if (JSON.stringify(ownedGameIds).includes(JSON.stringify(game.id))) {
             return response.status(400).json({ error: 'This user already has the game matching the game id in their collection' })
         }
 
-        const userGame = Object.assign({user: loggedInUserId}, request.body)
+        const userGame = Object.assign({user: loggedInUserId}, body)
         const newUserGame = new UserGame(userGame)
 
         const savedUserGame = await newUserGame.save()
@@ -50,10 +55,10 @@ userGamesRouter.post('/', async (request, response) => {
 
         response.json(UserGame.format(savedUserGame))
     } catch (exception) {
-        console.log(exception)
+        print(exception)
 
         if (exception.name === 'ValidationError' || exception.name === 'CastError'){
-            response.status(400).json({ error: 'Invalid game parameters' })
+            response.status(400).json({ error: 'Invalid user game parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -83,7 +88,7 @@ userGamesRouter.put('/:id', async (request, response) => {
         print(exception)
 
         if (exception._message === 'Validation failed' || exception.name === 'CastError') {
-            response.status(400).json({ error: 'Invalid game parameters' })
+            response.status(400).json({ error: 'Invalid user game parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }

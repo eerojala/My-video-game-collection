@@ -25,6 +25,12 @@ const initialGames = [
         publishers: ['Sony Computer Entertainment']
     },
     {
+        name: 'Alundra',
+        year: 1998,
+        developers: ['Matrix Software'],
+        publishers: ['SCEI', 'Working Designs', 'Psygnosis']
+    },
+    {
         name: 'Baseball Stars 2',
         year: 1992,
         developers: ['SNK'],
@@ -107,8 +113,9 @@ const saveInitialGames = async () => {
     const platforms = await platformsInDb()
 
     initialGames[0].platform = platforms[0].id
-    initialGames[1].platform = platforms[1].id
+    initialGames[1].platform = platforms[0].id
     initialGames[2].platform = platforms[1].id
+    initialGames[3].platform = platforms[1].id
     const gameObjects = initialGames.map(game => new Game(game))
     const promiseArray = gameObjects.map(game => game.save())
     
@@ -119,8 +126,8 @@ const addGamesToPlatforms = async () => {
     const platforms = await Platform.find({})
     const games = await gamesInDb()
     
-    const playstationGames = [games[0].id]
-    const neoGeoGames = [games[1].id, games[2].id]
+    const playstationGames = [games[0].id, games[1].id]
+    const neoGeoGames = [games[2].id, games[3].id]
     platforms[0].games = playstationGames
     platforms[1].games = neoGeoGames
     const promiseArray = platforms.map(platform => platform.save())
@@ -170,17 +177,25 @@ const saveInitialUserGames = async () => {
 
     const userGame3 = new UserGame({
         user: user2._id,
-        game: games[1].id,
+        game: games[2].id,
         status: 'Completed',
         score: 4
+    })
+
+    const userGame4 = new UserGame({
+        user: user2._id,
+        game: games[3].id,
+        status: 'Unfinished',
+        score: 3
     })
 
     await userGame1.save()
     await userGame2.save()
     await userGame3.save()
+    await userGame4.save()
     
     user1.ownedGames = [userGame1._id, userGame2._id]
-    user2.ownedGames = [userGame3._id]
+    user2.ownedGames = [userGame3._id, userGame4._id]
 
     await user1.save()
     await user2.save()
