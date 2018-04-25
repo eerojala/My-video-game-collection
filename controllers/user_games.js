@@ -21,7 +21,7 @@ userGamesRouter.get('/', async (request, response) => {
 userGamesRouter.post('/', async (request, response) => {
     try {
         const loggedInUserId = await getLoggedInUserId(request.token)
-        
+
         if (!loggedInUserId) {
             return response.status(401).json({ error: 'You must be logged in to add a game to your collection' })
         }
@@ -29,8 +29,7 @@ userGamesRouter.post('/', async (request, response) => {
         const user = await User
             .findById(loggedInUserId)
             .populate('ownedGames', { game: 1 })
-
-        const game = await Game.findById(body.game)
+        const game = await Game.findById(request.body.game)
 
         if (!game) {
             return response.status(400).json({ error: 'No game found matching given game id' })
@@ -41,17 +40,17 @@ userGamesRouter.post('/', async (request, response) => {
         }
 
         const userGame = Object.assign({user: loggedInUserId}, request.body)
-        const newUserGame = new User(userGame)
+        const newUserGame = new UserGame(userGame)
 
         const savedUserGame = await newUserGame.save()
 
-        user.ownedGames = user.games.concat(savedUserGame._id)
+        user.ownedGames = user.ownedGames.concat(savedUserGame._id)
 
         await user.save()
 
         response.json(UserGame.format(savedUserGame))
     } catch (exception) {
-        print(exception)
+        console.log(exception)
 
         if (exception.name === 'ValidationError' || exception.name === 'CastError'){
             response.status(400).json({ error: 'Invalid game parameters' })

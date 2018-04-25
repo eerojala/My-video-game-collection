@@ -204,6 +204,12 @@ const findUser = async (id) => {
     return User.format(user)
 }
 
+const findUserGame = async (id) => {
+    const userGame = await UserGame.findById(id)
+
+    return UserGame.format(userGame)
+}
+
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
@@ -273,6 +279,7 @@ module.exports = {
     findPlatform,
     findGame,
     findUser,
+    findUserGame,
     platform1,
     platform2,
     platform3,
