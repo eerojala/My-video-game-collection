@@ -147,27 +147,29 @@ const initializeTestDb = async () => {
 }
 
 const saveInitialUserGames = async () => {
+    await UserGame.remove({})
+
     const games = await gamesInDb()
     const users = await User.find({})
-
     const user1 = users[0]
     const user2 = users[1]
+
     const userGame1 = new UserGame({
-        user: user1.id,
+        user: user1._id,
         game: games[0].id,
         status: 'Unfinished',
         score: 4
     })
 
     const userGame2 = new UserGame({
-        user: user1.id,
+        user: user1._id,
         game: games[1].id,
         status: 'Beaten',
         score: 5
     })
 
     const userGame3 = new UserGame({
-        user: user2.id,
+        user: user2._id,
         game: games[1].id,
         status: 'Completed',
         score: 4

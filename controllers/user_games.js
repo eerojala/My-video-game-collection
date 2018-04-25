@@ -2,53 +2,40 @@ const userGamesRouter = require('express').Router()
 const UserGame = require('../models/user_game')
 const User = require('../models/user')
 const Game = require('../models/game')
-const { print, correctUserLoggedIn } = require('../utils/controller_helper')
+const { print, correctUserLoggedIn, adminLoggedIn, getLoggedInUserId } = require('../utils/controller_helper')
 
 userGamesRouter.get('/', async (request, response) => {
     try {
-        const user = await User.findById(request.params.userId)
-        console.log(request.params)
-        if (!user) {
-            return response.status(404).json({ error: 'No user found matching given user id' })
-        }
+        const userGames = await UserGame
+            .find({})
+            .populate('user', { username: 1, _id: 1 })
+            .populate('game', { name: 1 })
 
-        const games = await UserGame
-            .find({ user: request.params.userId })
-            .populate('game', { __v:0 })
-
-        if (games) {
-            response.json(games.map(Game.format))
-        } else {
-            response.status(404).end()
-        }
+            response.json(userGames.map(UserGame.format))
     } catch (exception) {
         print(exception)
-
-        if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted user id' })
-        } else {
-            response.status(500).json({ error: 'Something went wrong...' })
-        }
+        response.status(500).json({ error: 'Something went wrong...' })
     }
 })
 
 userGamesRouter.post('/', async (request, response) => {
     try {
-        if (await correctUserLoggedIn(request.token) === false) {
-            return response.status(401).json({ error: 'Must be logged in as a user with a corresponding id' })
-        }
-
+        const loggedInUserId = await getLoggedInUserId(request.token)
+        const user = await User.findById(loggedInUserId)
         const game = await Game.findById(body.game)
+
+        if (!user) {
+            return response.status(401).json({ error: 'You must be logged in to add a game to your collection' })
+        }
 
         if (!game) {
             return response.status(400).json({ error: 'No game found matching given game id' })
         }
 
-        const userGame = Object.assign({user: request.params.userId}, request.body)
+        const userGame = Object.assign({user: loggedInUserId}, request.body)
         const newUserGame = new User(userGame)
 
         const savedUserGame = await newUserGame.save()
-        const user = await User.findById(request.params.userId)
 
         user.games = user.games.concat(savedUserGame._id)
 
@@ -66,22 +53,25 @@ userGamesRouter.post('/', async (request, response) => {
     }
 })
 
-userGamesRouter.put('/:userGameId', async (request, response) => {
+userGamesRouter.put('/:id', async (request, response) => {
     try {
-        if (await correctUserLoggedIn(request.token) === false) {
-            return response.status(401).json({ error: 'Must be logged in as a user with a corresponding id' })
-        }
-
-        const userGame = await UserGame.findById(request.params.userGameId)
+        const userGame = await UserGame.findById(request.params.id)
 
         if (!userGame) {
             return response.status(404).json({ error: 'No user game found matching id' })
+        }
+
+        if (!(await correctUserLoggedIn(request.token, userGame.user) === true || await adminLoggedIn(request.token) === true)) {
+            return response.status(401).json({ 
+                error: 'Must be logged in either as the user who owns the game or as an admin to update a game collection entry' 
+            })
         }
 
         const changesToUserGame = Object.assign({}, request.body)
 
         const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.userId, changesToUserGame, { new: true, runValidators: true })
 
+        response.json(UserGame.format(updatedUserGame))
     } catch (exception) {
         print(exception)
 
@@ -93,19 +83,21 @@ userGamesRouter.put('/:userGameId', async (request, response) => {
     }
 })
 
-userGamesRouter.delete('/:userGameId', async (request, response) => {
+userGamesRouter.delete('/:id', async (request, response) => {
     try {
-        if (await correctUserLoggedIn(request.token) === false) {
-            return response.status(401).json({ error: 'Must be logged in as a user with a corresponding id' })
-        }
-
         const userGame = await UserGame.findByIdAndRemove(request.params.userGameId)
 
         if (!userGame) {
             return response.status(404).json({ error: 'No user game found matching id' })
         }
 
-        const user = await User.findById(request.params.userId)
+        if (!(await correctUserLoggedIn(request.token, userGame.user) === true || await adminLoggedIn(request.token) === true)) {
+            return response.status(401).json({ 
+                error: 'Must be logged in either as the user who owns the game or as an admin to delete a game collection entry' 
+            })
+        }
+
+        const user = await User.findById(userGame.user)
 
         user.games = user.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.userGameId))
 

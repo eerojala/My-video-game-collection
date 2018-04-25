@@ -10,25 +10,33 @@ const {
 
 const api = supertest(app)
 
-describe('When there are initially some user games saved', async () => {
+describe('When there are initially some user game collection entries saved', async () => {
     beforeAll(async () => {
         await initializeTestDb()
     })
 
-    test('all games owned by a user are returned as JSON by GET /api/users/:userId/games', async () => {
-        const users = await usersInDb()
-
-        const user = users[0]
+    test('all game collection entries are returned by GET /api/usergames', async () => {
+        const userGames = await userGamesInDb()
 
         const response = await api
-            .get(`/api/users/${user.id}/games`)
+            .get('/api/usergames')
             .expect(200)
             .expect('Content-type', /application\/json/)
 
-        const ids = response.body.map(userGame => userGame.id)
+        const ids = response.body.map(userGame => JSON.stringify(userGame.id))
+        const users = response.body.map(userGame => JSON.stringify(userGame.user._id))
+        const games = response.body.map(userGame => JSON.stringify(userGame.game._id))
+        const statuses = response.body.map(userGame => userGame.status)
+        const scores = response.body.map(userGame => userGame.score)
 
-        expect(response.body.length).toBe(user.games.length)
-        expect(JSON.stringify(ids)).toEqual(JSON.stringify(user.games))
+        expect(response.body).toHaveLength(userGames.length)
+        userGames.forEach(userGame => {
+            expect(ids).toContain(JSON.stringify(userGame.id))
+            expect(users).toContain(JSON.stringify(userGame.user))
+            expect(games).toContain(JSON.stringify(userGame.game))
+            expect(statuses).toContain(userGame.status)
+            expect(scores).toContain(userGame.score)
+        })
     })
 
     afterAll(() => {

@@ -8,7 +8,7 @@ const print = (message) => {
     }
 }
 
-const getLoggedInUser = async (token) => {
+const getLoggedInUserId = async (token) => {
     if (!token) {
         return null
     }
@@ -19,11 +19,12 @@ const getLoggedInUser = async (token) => {
         return null
     }
 
-    return await User.findById(decodedToken.id)
+    return decodedToken.id
 }
 
 const adminLoggedIn = async (token) => {
-    const loggedInUser = await getLoggedInUser(token)
+    const loggedInUserId = await getLoggedInUserId(token)
+    const loggedInUser = await User.findById(loggedInUserId)
 
     if (!loggedInUser) {
         return false
@@ -33,7 +34,8 @@ const adminLoggedIn = async (token) => {
 }
 
 const correctUserLoggedIn = async (token, id) => {
-    const loggedInUser = await getLoggedInUser(token)
+    const loggedInUserId = await getLoggedInUserId(token)
+    const loggedInUser = await User.findById(loggedInUserId)
 
     if (!loggedInUser) {
         return false
@@ -49,4 +51,4 @@ const hashPassword = async (password) => {
 }
 
 
-module.exports = { print, adminLoggedIn, correctUserLoggedIn, hashPassword }
+module.exports = { print, getLoggedInUserId, adminLoggedIn, correctUserLoggedIn, hashPassword }
