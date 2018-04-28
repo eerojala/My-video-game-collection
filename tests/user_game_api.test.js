@@ -56,20 +56,35 @@ describe('When there are initially some user game collection entries saved', asy
             const userGamesBeforePost = await userGamesInDb()
             const usersBeforePost = await usersInDb()
 
-            const newUserGame = Object.assign({}, userGame)
-
             const response = await api
                 .post('/api/usergames')
-                .send(newUserGame)
+                .send(userGame)
                 .expect(401)
                 .expect('Content-type', /application\/json/)
 
             const userGamesAfterPost = await userGamesInDb()
             const usersAfterPost = await usersInDb()
 
-            expect(userGamesAfterPost).toEqual(userGamesBeforePost)
             expect(response.body.error).toBe('You must be logged in to add a game to your collection')
+            expect(userGamesAfterPost).toEqual(userGamesBeforePost)
             expect(usersAfterPost).toEqual(usersBeforePost)
+        })
+
+        test ('PUT /api/usergames/:id fails', async () => {
+            const userGamesBeforePut = await userGamesInDb()
+            
+            const userGame = userGamesBeforePut[0]
+
+            const response = await api
+                .put(`/api/usergames/${userGame.id}`)
+                .send(userGame)
+                .expect(401)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterPut = await userGamesInDb()
+
+            expect(response.body.error).toBe('Must be logged in either as the user who owns the game or as an admin to update a game collection entry' )
+            expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
         })
     })
 
@@ -207,10 +222,15 @@ describe('When there are initially some user game collection entries saved', asy
         })
 
         describe('PUT /api/usergames/:id', async () => {
-            let invalidPutTest
+            let invalidPutTest, validChanges = {}
 
             beforeAll(async () => {
-                invalidPutTest = async (data) => {
+                const userGame = await findUserGame(loggedInUser.ownedGames[0])
+
+                validChanges.status = userGame.status === 'Completed' ? 'Beaten' : 'Completed'
+                validChanges.score = userGame.score === 5 ? 1 : 5
+
+                invalidPutTest = async (data, errorMessage) => {
                     const userGamesBeforePut = await userGamesInDb()
                     const userGameBeforePut = await findUserGame(loggedInUser.ownedGames[1])
 
@@ -223,8 +243,8 @@ describe('When there are initially some user game collection entries saved', asy
 
                     const userGamesAfterPut = await userGamesInDb()
 
-                    expect(response.body.error).toBe('Invalid user game parameters')
-                    expect(JSON.stringify(userGamesAfterPut).toEqual(JSON.stringify(userGamesBeforePut)))
+                    expect(response.body.error).toBe(errorMessage)
+                    expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
                 }
             })
 
@@ -232,14 +252,10 @@ describe('When there are initially some user game collection entries saved', asy
                 const userGamesBeforePut = await userGamesInDb()
                 const userGameBeforePut = await findUserGame(loggedInUser.ownedGames[0])
 
-                const changedUserGame = Object.assign({}, userGameBeforePut)
-                changedUserGame.status = userGameBeforePut.status === 'Completed' ? 'Beaten' : 'Completed'
-                changedUserGame.score = userGameBeforePut.score === 5 ? 1 : 5
-
                 await api
                     .put(`/api/usergames/${userGameBeforePut.id}`)
                     .set('Authorization', 'bearer ' + userToken)
-                    .send(changedUserGame)
+                    .send(validChanges)
                     .expect(200)
                     .expect('Content-type', /application\/json/)
 
@@ -249,8 +265,53 @@ describe('When there are initially some user game collection entries saved', asy
                 expect(userGamesAfterPut).toHaveLength(userGamesBeforePut.length)
                 expect(userGameAfterPut).not.toEqual(userGameBeforePut)
                 expect(JSON.stringify(userGameAfterPut.id)).not.toEqual(JSON.stringify(userGamesBeforePut.id))
-                expect(userGameAfterPut.status).toEqual(changedUserGame.status)
-                expect(userGameAfterPut.score).toEqual(changedUserGame.score)
+                expect(userGameAfterPut.status).toEqual(validChanges.status)
+                expect(userGameAfterPut.score).toEqual(validChanges.score)
+            })
+
+            test('returns status code 404 if trying to modify a nonexisting user game', async () => {
+                const userGamesBeforePut = await userGamesInDb()
+                const idWhichDoesNotExist = await nonExistingId()
+
+                const response = await api
+                    .put(`/api/usergames/${idWhichDoesNotExist}`)
+                    .set('Authorization', 'bearer ' + userToken)
+                    .send(validChanges)
+                    .expect(404)
+                    .expect('Content-type', /application\/json/)
+
+                const userGamesAfterPut = await userGamesInDb()
+
+                expect(response.body.error).toBe('No user game found matching id')
+                expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
+            })
+
+            test('fails if a game id - invalid or valid - is included in the request', async () => {
+                const gameIdIncluded = Object.assign({}, validChanges)
+                gameIdIncluded.game = 'Not even an invalid game id is allowed'
+
+                await invalidPutTest(gameIdIncluded, 'You are not allowed to change the game or user of a game collection entry')
+            })
+
+            test('fails if an user id - invalid or valid - is included in the request', async () => {
+                const userIdIncluded = Object.assign({}, validChanges)
+                userIdIncluded.user = 'Not even an invalid user id is allowed'
+
+                await invalidPutTest(userIdIncluded, 'You are not allowed to change the game or user of a game collection entry')
+            })
+
+            test('fails with invalid status', async () => {
+                const invalidStatus = Object.assign({}, validChanges)
+                invalidStatus.status = 'Invalid'
+
+                await invalidPutTest(invalidStatus, 'Invalid user game parameters')
+            })
+
+            test('fails with invalid score', async () => {
+                const invalidScore = Object.assign({}, validChanges)
+                invalidScore.score = 2.65
+
+                await invalidPutTest(invalidScore, 'Invalid user game parameters')
             })
         })
     })

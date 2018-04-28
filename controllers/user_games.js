@@ -79,6 +79,11 @@ userGamesRouter.put('/:id', async (request, response) => {
             })
         }
 
+        
+        if (request.body.user || request.body.game) {
+            return response.status(400).json({ error: 'You are not allowed to change the game or user of a game collection entry' })
+        }
+
         const changesToUserGame = Object.assign({}, request.body)
         
         const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.id, changesToUserGame, { new: true, runValidators: true })
