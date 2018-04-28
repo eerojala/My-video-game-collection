@@ -41,7 +41,7 @@ const correctUserLoggedIn = async (token, id) => {
         return false
     }
 
-    return loggedInUser.id === id
+    return JSON.stringify(loggedInUserId) === JSON.stringify(id)
 }
 
 const hashPassword = async (password) => {

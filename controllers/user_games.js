@@ -80,8 +80,8 @@ userGamesRouter.put('/:id', async (request, response) => {
         }
 
         const changesToUserGame = Object.assign({}, request.body)
-
-        const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.userId, changesToUserGame, { new: true, runValidators: true })
+        
+        const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.id, changesToUserGame, { new: true, runValidators: true })
 
         response.json(UserGame.format(updatedUserGame))
     } catch (exception) {

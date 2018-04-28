@@ -74,7 +74,7 @@ describe('When there are initially some user game collection entries saved', asy
     })
 
     describe('and the user is logged in with the correct account', async () => {
-        let userToken, loggedInUserId, ownedGameIds, notOwnedGameIds
+        let userToken, loggedInUserId, loggedInUser, ownedGameIds, notOwnedGameIds
         
         beforeAll(async () => {
             const response = await api
@@ -83,7 +83,7 @@ describe('When there are initially some user game collection entries saved', asy
 
             userToken = response.body.token 
 
-            const loggedInUser = await User.findOne({ username: memberCredentials.username })
+            loggedInUser = await User.findOne({ username: memberCredentials.username })
 
             loggedInUserId = loggedInUser._id
 
@@ -203,6 +203,54 @@ describe('When there are initially some user game collection entries saved', asy
                 scoreBelowZero.score = -1
 
                 await invalidPostTest(scoreBelowZero)
+            })
+        })
+
+        describe('PUT /api/usergames/:id', async () => {
+            let invalidPutTest
+
+            beforeAll(async () => {
+                invalidPutTest = async (data) => {
+                    const userGamesBeforePut = await userGamesInDb()
+                    const userGameBeforePut = await findUserGame(loggedInUser.ownedGames[1])
+
+                    const response = await api
+                        .put(`/api/userGames/${userGameBeforePut.id}`)
+                        .set('Authorization', 'bearer ' + userToken)
+                        .send(data)
+                        .expect(400)
+                        .expect('Content-type', /application\/json/)
+
+                    const userGamesAfterPut = await userGamesInDb()
+
+                    expect(response.body.error).toBe('Invalid user game parameters')
+                    expect(JSON.stringify(userGamesAfterPut).toEqual(JSON.stringify(userGamesBeforePut)))
+                }
+            })
+
+            test('succeeds with valid data', async () => {
+                const userGamesBeforePut = await userGamesInDb()
+                const userGameBeforePut = await findUserGame(loggedInUser.ownedGames[0])
+
+                const changedUserGame = Object.assign({}, userGameBeforePut)
+                changedUserGame.status = userGameBeforePut.status === 'Completed' ? 'Beaten' : 'Completed'
+                changedUserGame.score = userGameBeforePut.score === 5 ? 1 : 5
+
+                await api
+                    .put(`/api/usergames/${userGameBeforePut.id}`)
+                    .set('Authorization', 'bearer ' + userToken)
+                    .send(changedUserGame)
+                    .expect(200)
+                    .expect('Content-type', /application\/json/)
+
+                const userGamesAfterPut = await userGamesInDb()
+                const userGameAfterPut = await findUserGame(userGameBeforePut.id)
+
+                expect(userGamesAfterPut).toHaveLength(userGamesBeforePut.length)
+                expect(userGameAfterPut).not.toEqual(userGameBeforePut)
+                expect(JSON.stringify(userGameAfterPut.id)).not.toEqual(JSON.stringify(userGamesBeforePut.id))
+                expect(userGameAfterPut.status).toEqual(changedUserGame.status)
+                expect(userGameAfterPut.score).toEqual(changedUserGame.score)
             })
         })
     })
