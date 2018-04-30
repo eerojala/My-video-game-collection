@@ -70,7 +70,7 @@ describe('When there are initially some user game collection entries saved', asy
             expect(usersAfterPost).toEqual(usersBeforePost)
         })
 
-        test ('PUT /api/usergames/:id fails', async () => {
+        test('PUT /api/usergames/:id fails', async () => {
             const userGamesBeforePut = await userGamesInDb()
             
             const userGame = userGamesBeforePut[0]
@@ -85,6 +85,22 @@ describe('When there are initially some user game collection entries saved', asy
 
             expect(response.body.error).toBe('Must be logged in either as the user who owns the game or as an admin to update a game collection entry' )
             expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
+        })
+
+        test('DELETE /api/usergames/:id fails', async () => {
+            const userGamesBeforeDelete = await userGamesInDb()
+
+            const userGame = userGamesBeforeDelete[0]
+
+            const response = await api
+                .delete(`/api/usergames/${userGame.id}`)
+                .expect(401)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterDelete = await userGamesInDb()
+
+            expect(response.body.error).toBe('To delete an user game collection entry you must be either logged in either as the user who it belongs to or as an admin')
+            expect(JSON.stringify(userGamesAfterDelete)).toEqual(JSON.stringify(userGamesBeforeDelete))
         })
     })
 
@@ -312,6 +328,61 @@ describe('When there are initially some user game collection entries saved', asy
                 invalidScore.score = 2.65
 
                 await invalidPutTest(invalidScore, 'Invalid user game parameters')
+            })
+        })
+
+        describe('DELETE /api/usergames/:id', async () => {
+            test('successfully deletes the user game matching the id', async () => {
+                const userGameId = loggedInUser.ownedGames[0]
+                const userGameBeforeDelete = await findUserGame(userGameId)
+                const userGamesBeforeDelete = await userGamesInDb()
+                const userBeforeDelete = await findUser(userGameBeforeDelete.user)
+
+                expect(JSON.stringify(userGamesBeforeDelete)).toContain(JSON.stringify(userGameBeforeDelete))
+                expect(JSON.stringify(userBeforeDelete.ownedGames)).toContain(JSON.stringify(userGameId))
+
+                await api
+                    .delete(`/api/usergames/${userGameId}`)
+                    .set('Authorization', 'bearer ' + userToken)
+                    .expect(204)
+
+                const userGamesAfterDelete = await userGamesInDb()
+                const userAfterDelete = await findUser(userGameBeforeDelete.user)
+                
+                expect(userGamesAfterDelete).toHaveLength(userGamesBeforeDelete.length - 1)
+                expect(JSON.stringify(userGamesAfterDelete)).not.toContain(JSON.stringify(userGameBeforeDelete))
+                expect(JSON.stringify(userAfterDelete.ownedGames)).not.toContain(JSON.stringify(userGameId))
+            })
+
+            test('returns 404 if trying to delete an user game collection entry matching a non-existing id', async () => {
+                const nonExistentId = await nonExistingId()
+                const userGamesBeforeDelete = await userGamesInDb()
+
+                const response = await api
+                    .delete(`/api/usergames/${nonExistentId}`)
+                    .set('Authorization', 'bearer ' + userToken)
+                    .expect(404)
+                    .expect('Content-type', /application\/json/)
+
+                const userGamesAfterDelete = await userGamesInDb()
+
+                expect(response.body.error).toBe('No user game collection entry found matching id')
+                expect(JSON.stringify(userGamesAfterDelete)).toEqual(JSON.stringify(userGamesBeforeDelete))
+            })
+
+            test('returns 400 if trying to delete an user game collection entry matching an invalid id', async () => {
+                const userGamesBeforeDelete = await userGamesInDb()
+
+                const response = await api
+                    .delete('/api/usergames/invalid')
+                    .set('Authorization', 'bearer ' + userToken)
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+
+                const userGamesAfterDelete = await userGamesInDb()
+
+                expect(response.body.error).toBe('Malformatted user game collection entry id')
+                expect(JSON.stringify(userGamesAfterDelete)).toEqual(JSON.stringify(userGamesBeforeDelete))
             })
         })
     })

@@ -102,17 +102,19 @@ userGamesRouter.put('/:id', async (request, response) => {
 
 userGamesRouter.delete('/:id', async (request, response) => {
     try {
-        const userGame = await UserGame.findByIdAndRemove(request.params.userGameId)
-
+        const userGame = await UserGame.findById(request.params.id)
+        
         if (!userGame) {
-            return response.status(404).json({ error: 'No user game found matching id' })
+            return response.status(404).json({ error: 'No user game collection entry found matching id' })
         }
-
+           
         if (!(await correctUserLoggedIn(request.token, userGame.user) === true || await adminLoggedIn(request.token) === true)) {
             return response.status(401).json({ 
-                error: 'Must be logged in either as the user who owns the game or as an admin to delete a game collection entry' 
+                error: 'To delete an user game collection entry you must be either logged in either as the user who it belongs to or as an admin' 
             })
         }
+
+        await UserGame.findByIdAndRemove(request.params.id)
 
         const user = await User.findById(userGame.user)
 
@@ -125,7 +127,7 @@ userGamesRouter.delete('/:id', async (request, response) => {
         print(exception)
 
         if (exception.name === 'CastError') {
-            response.status(400).json({ error: 'Malformatted id' })
+            response.status(400).json({ error: 'Malformatted user game collection entry id' })
         } else {
             response.status(500).json({ error: 'Error, something went wrong' })
         }
