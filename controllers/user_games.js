@@ -107,7 +107,7 @@ userGamesRouter.delete('/:id', async (request, response) => {
         if (!userGame) {
             return response.status(404).json({ error: 'No user game collection entry found matching id' })
         }
-           
+        
         if (!(await correctUserLoggedIn(request.token, userGame.user) === true || await adminLoggedIn(request.token) === true)) {
             return response.status(401).json({ 
                 error: 'To delete an user game collection entry you must be either logged in either as the user who it belongs to or as an admin' 

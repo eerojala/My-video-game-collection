@@ -25,7 +25,7 @@ const getLoggedInUserId = async (token) => {
 const adminLoggedIn = async (token) => {
     const loggedInUserId = await getLoggedInUserId(token)
     const loggedInUser = await User.findById(loggedInUserId)
-
+    
     if (!loggedInUser) {
         return false
     }

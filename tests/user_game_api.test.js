@@ -12,6 +12,7 @@ const {
     getNotOwnedUserGameIds,
     memberCredentials,
     adminCredentials,
+    otherCredentials,
     nonExistingId
 } = require('../utils/test_helper')
 
@@ -452,6 +453,66 @@ describe('When there are initially some user game collection entries saved', asy
             
             expect(userGamesAfterDelete).toHaveLength(userGamesBeforeDelete.length - 1)
             expect(JSON.stringify(userGamesAfterDelete)).not.toContain(JSON.stringify(userGame))
+        })
+    })
+
+    describe('and the user is logged in on an account belonging to another user', async () => {
+        let otherToken, loggedInUserId
+
+        beforeAll(async () => {
+            const response = await api
+                .post('/api/login')
+                .send(otherCredentials)
+
+            otherToken = response.body.token
+
+            const loggedInUser = await User.findOne({ username: otherCredentials.username })
+
+            loggedInUserId = loggedInUser.id
+        })
+
+        test('PUT /api/usergames/:id fails if trying to modify an user game collection entry belonging to another user', async () => {
+            const userGamesBeforePut = await userGamesInDb()
+
+            const userGame = userGamesBeforePut[0]
+
+            expect(JSON.stringify(userGame.user)).not.toBe(JSON.stringify(loggedInUserId))
+
+            const changes = {
+                status: userGame.status === 'Completed' ? 'Beaten' : 'Completed',
+                score: userGame.score === 5 ? 1 : 5
+            }
+
+            const response = await api
+                .put(`/api/usergames/${userGame.id}`)
+                .set('Authorization', 'bearer ' + otherToken)
+                .send(changes)
+                .expect(401)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterPut = await userGamesInDb()
+
+            expect(response.body.error).toBe('Must be logged in either as the user who owns the game or as an admin to update a game collection entry')
+            expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
+        })
+
+        test('DELETE /api/usergames/:id fails if trying to delete an user game collection entry belonging to another user', async () => {
+            const userGamesBeforeDelete = await userGamesInDb()
+
+            const userGame = userGamesBeforeDelete[0]
+
+            expect(JSON.stringify(userGame.user)).not.toBe(JSON.stringify(loggedInUserId))
+
+            const response = await api
+                .delete(`/api/usergames/${userGame.id}`)
+                .set('Authorization', 'bearer ' + otherToken)
+                .expect(401)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterDelete = await userGamesInDb()
+
+            expect(response.body.error).toBe('To delete an user game collection entry you must be either logged in either as the user who it belongs to or as an admin')
+            expect(JSON.stringify(userGamesAfterDelete)).toEqual(JSON.stringify(userGamesBeforeDelete))
         })
     })
 

@@ -54,6 +54,11 @@ const initialUsers = [
         username: 'adminguy',
         password: 'salasana',
         role: 'Admin'
+    },
+    {
+        username: 'other',
+        password: '12345',
+        role: 'Member'
     }
 ]
 
@@ -140,6 +145,7 @@ const saveInitialUsers = async () => {
 
     initialUsers[0].passwordHash = await hashPassword(initialUsers[0].password)
     initialUsers[1].passwordHash = await hashPassword(initialUsers[1].password)
+    initialUsers[2].passwordHash = await hashPassword(initialUsers[2].password)
 
     const userObjects = initialUsers.map(user => new User(user))
     const promiseArray = userObjects.map(user => user.save())
@@ -157,9 +163,8 @@ const saveInitialUserGames = async () => {
     await UserGame.remove({})
 
     const games = await gamesInDb()
-    const users = await User.find({})
-    const user1 = users[0]
-    const user2 = users[1]
+    const user1 = await User.findOne({ username: 'notadmin' })
+    const user2 = await User.findOne({ username: 'adminguy' })
 
     const userGame1 = new UserGame({
         user: user1._id,
@@ -288,6 +293,11 @@ const adminCredentials = {
     username: initialUsers[1].username,
     password: initialUsers[1].password
 }
+
+const otherCredentials = {
+    username: initialUsers[2].username,
+    password: initialUsers[2].password
+}
  
 module.exports = {
     saveInitialPlatformsAndGames,
@@ -311,5 +321,6 @@ module.exports = {
     game3,
     user1,
     memberCredentials,
-    adminCredentials
+    adminCredentials,
+    otherCredentials
 }
