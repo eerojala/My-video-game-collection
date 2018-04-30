@@ -9,7 +9,9 @@ const {
     usersInDb,
     findUserGame,
     findUser,
+    getNotOwnedUserGameIds,
     memberCredentials,
+    adminCredentials,
     nonExistingId
 } = require('../utils/test_helper')
 
@@ -280,7 +282,7 @@ describe('When there are initially some user game collection entries saved', asy
 
                 expect(userGamesAfterPut).toHaveLength(userGamesBeforePut.length)
                 expect(userGameAfterPut).not.toEqual(userGameBeforePut)
-                expect(JSON.stringify(userGameAfterPut.id)).not.toEqual(JSON.stringify(userGamesBeforePut.id))
+                expect(JSON.stringify(userGameAfterPut.id)).toEqual(JSON.stringify(userGameBeforePut.id))
                 expect(userGameAfterPut.status).toEqual(validChanges.status)
                 expect(userGameAfterPut.score).toEqual(validChanges.score)
             })
@@ -386,6 +388,73 @@ describe('When there are initially some user game collection entries saved', asy
             })
         })
     })
+
+    describe('and the user is logged in with an admin account', async () => {
+        let adminToken, loggedInUserId, notOwnedUserGameIds
+
+        beforeAll(async () => {
+            const response = await api
+                .post('/api/login')
+                .send(adminCredentials)
+
+            adminToken = response.body.token
+
+            const loggedInUser = await User.findOne({ username: adminCredentials.username  })
+
+            loggedInUserId = loggedInUser.id
+
+            notOwnedUserGameIds = await getNotOwnedUserGameIds(loggedInUserId)
+        })
+
+        test('PUT /api/usergames/:id succeeds when modifying an user game collection entry owned by another user', async () => {
+            const id = notOwnedUserGameIds[0]
+            
+            const userGamesBeforePut = await userGamesInDb()
+            const userGameBeforePut = await findUserGame(id)
+
+            expect(JSON.stringify(userGameBeforePut.user)).not.toBe(JSON.stringify(loggedInUserId))
+
+            const changes = {
+                status: userGameBeforePut.status === 'Completed' ? 'Beaten' : 'Completed',
+                score: userGameBeforePut.score === 5 ? 1 : 5
+            }
+
+            await api
+                .put(`/api/usergames/${userGameBeforePut.id}`)
+                .set('Authorization', 'bearer ' + adminToken)
+                .send(changes)
+                .expect(200)
+                .expect('Content-type', /application\/json/)
+
+            const userGamesAfterPut = await userGamesInDb()
+            const userGameAfterPut = await findUserGame(userGameBeforePut.id)
+
+            expect(userGamesAfterPut).toHaveLength(userGamesBeforePut.length)
+            expect(userGameAfterPut).not.toEqual(userGameBeforePut)
+            expect(userGameAfterPut.status).toEqual(changes.status)
+            expect(userGameAfterPut.score).toEqual(changes.score)
+        })
+
+        test('DELETE /api/usergames:id succeeds when deleting an user game collection entry owned by another user', async () => {
+            const id = notOwnedUserGameIds[1]
+
+            const userGamesBeforeDelete = await userGamesInDb()
+            const userGame = await findUserGame(id)
+            
+            expect(JSON.stringify(userGame.user)).not.toBe(JSON.stringify(loggedInUserId))
+
+            await api
+                .delete(`/api/usergames/${id}`)
+                .set('Authorization', 'bearer ' + adminToken)
+                .expect(204) 
+            
+            const userGamesAfterDelete = await userGamesInDb()
+            
+            expect(userGamesAfterDelete).toHaveLength(userGamesBeforeDelete.length - 1)
+            expect(JSON.stringify(userGamesAfterDelete)).not.toContain(JSON.stringify(userGame))
+        })
+    })
+
 
     afterAll(() => {
         server.close()

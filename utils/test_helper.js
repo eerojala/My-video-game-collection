@@ -225,6 +225,13 @@ const findUserGame = async (id) => {
     return UserGame.format(userGame)
 }
 
+const getNotOwnedUserGameIds = async (userId) => {
+    const userGames = await userGamesInDb()
+
+    const notOwnedUserGames = userGames.filter(userGame => JSON.stringify(userGame.user) !== JSON.stringify(userId))
+    return notOwnedUserGames.map(notOwnedUserGame => notOwnedUserGame.id)
+}
+
 const platform1 = {
     name: 'Dreamcast',
     creator: 'Sega',
@@ -295,6 +302,7 @@ module.exports = {
     findGame,
     findUser,
     findUserGame,
+    getNotOwnedUserGameIds,
     platform1,
     platform2,
     platform3,
