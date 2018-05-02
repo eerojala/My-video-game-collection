@@ -2,7 +2,7 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const User = require('../models/user')
 const {
-    saveInitialUsers,
+    initializeTestDb,
     usersInDb,
     nonExistingId,
     findUser,
@@ -13,7 +13,7 @@ const api = supertest(app)
 
 describe('When there are initially some users saved', async () => {
     beforeAll(async () => {
-        await saveInitialUsers()
+        await initializeTestDb()
     })
 
     test('all users are returned as JSON by GET /api/platforms', async () => {
@@ -49,9 +49,12 @@ describe('When there are initially some users saved', async () => {
                 .expect('Content-type', /application\/json/)
 
             const body = response.body
+            const userGameIds = body.ownedGames.map(userGame => userGame._id)
+            
             expect(JSON.stringify(body.id)).toEqual(JSON.stringify(user.id))
             expect(body.username).toEqual(user.username)
             expect(body.role).toEqual(user.role)
+            expect(JSON.stringify(userGameIds)).toEqual(JSON.stringify(user.ownedGames))
         })
 
         test('returns status code 400 with malformatted id', async () => {
