@@ -58,7 +58,7 @@ userGamesRouter.post('/', async (request, response) => {
         print(exception)
 
         if (exception.name === 'ValidationError' || exception.name === 'CastError'){
-            response.status(400).json({ error: 'Invalid user game parameters' })
+            response.status(400).json({ error: 'Invalid user game collection entry parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }
@@ -70,7 +70,7 @@ userGamesRouter.put('/:id', async (request, response) => {
         const userGame = await UserGame.findById(request.params.id)
 
         if (!userGame) {
-            return response.status(404).json({ error: 'No user game found matching id' })
+            return response.status(404).json({ error: 'No user game collection entry found matching id' })
         }
 
         if (!(await correctUserLoggedIn(request.token, userGame.user) === true || await adminLoggedIn(request.token) === true)) {
@@ -93,7 +93,7 @@ userGamesRouter.put('/:id', async (request, response) => {
         print(exception)
 
         if (exception._message === 'Validation failed' || exception.name === 'CastError') {
-            response.status(400).json({ error: 'Invalid user game parameters' })
+            response.status(400).json({ error: 'Invalid user game collection entry parameters' })
         } else {
             response.status(500).json({ error: 'Something went wrong...' })
         }

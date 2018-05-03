@@ -10,6 +10,7 @@ const gamesRouter = require('./controllers/games')
 const usersRouter = require('./controllers/users')
 const userGamesRouter = require('./controllers/user_games')
 const loginRouter = require('./controllers/login')
+const defaultRouter = require('./controllers/default')
 
 const app = express()
 const config = require('./utils/config')
@@ -38,6 +39,7 @@ app.use('/api/games', gamesRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/usergames', userGamesRouter)
 app.use('/api/login', loginRouter)
+app.use('/', defaultRouter)
 
 // Error middleware
 app.use(middleware.error)

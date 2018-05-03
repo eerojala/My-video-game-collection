@@ -134,7 +134,7 @@ describe('When there are initially some user game collection entries saved', asy
             let invalidPostTest
 
             beforeAll(async () => {
-                invalidPostTest = async (data, errorMessage = 'Invalid user game parameters')  => {
+                invalidPostTest = async (data, errorMessage = 'Invalid user game collection entry parameters')  => {
                     const userGamesBeforePost = await userGamesInDb()
                     const usersBeforePost = await usersInDb()
 
@@ -301,7 +301,7 @@ describe('When there are initially some user game collection entries saved', asy
 
                 const userGamesAfterPut = await userGamesInDb()
 
-                expect(response.body.error).toBe('No user game found matching id')
+                expect(response.body.error).toBe('No user game collection entry found matching id')
                 expect(JSON.stringify(userGamesAfterPut)).toEqual(JSON.stringify(userGamesBeforePut))
             })
 
@@ -323,14 +323,14 @@ describe('When there are initially some user game collection entries saved', asy
                 const invalidStatus = Object.assign({}, validChanges)
                 invalidStatus.status = 'Invalid'
 
-                await invalidPutTest(invalidStatus, 'Invalid user game parameters')
+                await invalidPutTest(invalidStatus, 'Invalid user game collection entry parameters')
             })
 
             test('fails with invalid score', async () => {
                 const invalidScore = Object.assign({}, validChanges)
                 invalidScore.score = 2.65
 
-                await invalidPutTest(invalidScore, 'Invalid user game parameters')
+                await invalidPutTest(invalidScore, 'Invalid user game collection entry parameters')
             })
         })
 
