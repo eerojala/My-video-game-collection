@@ -474,6 +474,7 @@ describe('When there are initially some games and platforms saved', async () => 
                 expect(gamesAfterDelete).toHaveLength(gamesBeforeDelete.length - 1)
                 expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(game))
                 expect(JSON.stringify(platformAfterDelete.games)).not.toContain(JSON.stringify(game.id))
+                expect(userGamesAfterDelete.length).toBeGreaterThan(0)
                 expect(userGamesWhichHaveTheGame).toHaveLength(0)
             })
     
