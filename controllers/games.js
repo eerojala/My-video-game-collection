@@ -81,7 +81,13 @@ gamesRouter.put('/:id', async (request, response) => {
         const game = await Game.findById(request.params.id)
 
         if (!game) {
-            return response.status(404).json({ error: 'No game found matching id' })
+            return response.status(404).json({ error: 'No game found matching game id' })
+        } 
+
+        const platform = await Platform.findById(body.platform)
+
+        if (!platform) {
+            return response.status(400).json({ error: 'No platform found matching platform id' })
         }
 
         const newGame = {

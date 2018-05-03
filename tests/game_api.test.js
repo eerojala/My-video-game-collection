@@ -389,11 +389,11 @@ describe('When there are initially some games and platforms saved', async () => 
     
                 const gamesAfterPut = await gamesInDb()
     
-                expect(response.body.error).toBe('No game found matching id')
+                expect(response.body.error).toBe('No game found matching game id')
                 expect(gamesAfterPut).toEqual(gamesBeforePut)
             })
     
-            test('fails with invalid platform', async() => {
+            test('fails with invalid platform', async () => {
                 const gamesBeforePut = await gamesInDb()
                 
                 const invalidPlatform = Object.assign({}, game2)
@@ -410,6 +410,26 @@ describe('When there are initially some games and platforms saved', async () => 
     
                 expect(gamesAfterPut).toEqual(gamesBeforePut)
                 expect(response.body.error).toBe('Invalid game parameters')
+            })
+
+            test('fails with a non-existent platform', async () => {
+                const gamesBeforePut = await gamesInDb()
+                const nonExistentId = await nonExistingId()
+
+                const nonExistentPlatform = Object.assign({}, game2)
+                nonExistentPlatform.platform = nonExistentId
+
+                const response = await api
+                    .put(`/api/games/${gamesBeforePut[0].id}`)
+                    .set('Authorization', 'bearer ' + adminToken)
+                    .send(nonExistentPlatform) 
+                    .expect(400)
+                    .expect('Content-type', /application\/json/)
+    
+                const gamesAfterPut = await gamesInDb()
+    
+                expect(gamesAfterPut).toEqual(gamesBeforePut)
+                expect(response.body.error).toBe('No platform found matching platform id')
             })
     
             test('fails with invalid name', async() => {
@@ -456,7 +476,7 @@ describe('When there are initially some games and platforms saved', async () => 
                 const userGamesBeforeDelete = await userGamesInDb()
                 
                 let userGamesWhichHaveTheGame = userGamesBeforeDelete.filter(userGame => JSON.stringify(userGame.game) === JSON.stringify(game.id))
-                console.log(game.name)
+                
                 expect(JSON.stringify(platformBeforeDelete.games)).toContain(JSON.stringify(game.id))
                 expect(userGamesWhichHaveTheGame.length).toBeGreaterThan(0)
 
