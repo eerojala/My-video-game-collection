@@ -1,6 +1,7 @@
 const gamesRouter = require('express').Router()
 const Game = require('../models/game')
 const Platform = require('../models/platform')
+const UserGame = require('../models/user_game')
 const { print, adminLoggedIn } = require('../utils/controller_helper')
 
 gamesRouter.get('/', async (request, response) => {
@@ -111,7 +112,9 @@ gamesRouter.delete('/:id', async (request, response) => {
             return response.status(401).json({ error: 'Must be logged in as admin to delete a game' })
         }
 
-        const game = await Game.findByIdAndRemove(request.params.id)
+        const gameId = request.params.id
+
+        const game = await Game.findByIdAndRemove(gameId)
 
         if (!game) {
             return response.status(404).json({ error: 'No game found matching id' })
@@ -119,9 +122,10 @@ gamesRouter.delete('/:id', async (request, response) => {
 
         const platform = await Platform.findById(game.platform)
 
-        platform.games = platform.games.filter(game => JSON.stringify(game) !== JSON.stringify(request.params.id))
+        platform.games = platform.games.filter(game => JSON.stringify(game) !== JSON.stringify(gameId))
 
         await Platform.findByIdAndUpdate(platform.id, platform, { new: true, runValidators: true })
+        await UserGame.remove({ game: gameId })
 
         response.status(204).end()
     } catch (exception) {

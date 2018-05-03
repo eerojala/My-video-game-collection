@@ -3,11 +3,11 @@ const { app, server } = require('../index')
 const Game = require('../models/game')
 const Platform = require('../models/platform')
 const { 
-    saveInitialPlatformsAndGames,
-    saveInitialUsers, 
+    initializeTestDb,
     nonExistingId, 
     gamesInDb,
     platformsInDb,
+    userGamesInDb,
     findPlatform,
     findGame,
     game1,
@@ -21,8 +21,7 @@ const api = supertest(app)
 
 describe('When there are initially some games and platforms saved', async () => {
     beforeAll(async () => {
-        await saveInitialPlatformsAndGames()
-        await saveInitialUsers
+        await initializeTestDb()
     })
 
     test('all games are returned as JSON from GET /api/games', async () => {
@@ -451,36 +450,31 @@ describe('When there are initially some games and platforms saved', async () => 
     
         describe('DELETE /api/games/:id', async () => {
             test('successfully deletes the game matching the id', async () => {
-                const platforms = await platformsInDb()
-                
-                const game = Object.assign({}, game3)
-                const platform = platforms[1]
-                game.platform = platform.id       
-                const newGame = new Game(game)
-                platform.games.push(newGame.id)
-
-                await newGame.save()
-                await Platform.findByIdAndUpdate(platform.id, platform, { new: true, runValidators: true })
-    
                 const gamesBeforeDelete = await gamesInDb()
-                const platformBeforeDelete = await findPlatform(platform.id)
-                const gameIdsBeforeDelete = gamesBeforeDelete.map(game => game.id)
-    
-                expect(JSON.stringify(gameIdsBeforeDelete)).toContain(JSON.stringify(newGame.id))
-                expect(JSON.stringify(platformBeforeDelete.games)).toContain(JSON.stringify(newGame.id))
-    
+                const game = gamesBeforeDelete[1]
+                const platformBeforeDelete = await findPlatform(game.platform)
+                const userGamesBeforeDelete = await userGamesInDb()
+                
+                let userGamesWhichHaveTheGame = userGamesBeforeDelete.filter(userGame => JSON.stringify(userGame.game) === JSON.stringify(game.id))
+                console.log(game.name)
+                expect(JSON.stringify(platformBeforeDelete.games)).toContain(JSON.stringify(game.id))
+                expect(userGamesWhichHaveTheGame.length).toBeGreaterThan(0)
+
                 await api
-                    .delete(`/api/games/${newGame.id}`)
+                    .delete(`/api/games/${game.id}`)
                     .set('Authorization', 'bearer ' + adminToken)
                     .expect(204)
-                
+
                 const gamesAfterDelete = await gamesInDb()
-                const platformAfterDelete = await findPlatform(platform.id)
-    
-                expect(JSON.stringify(gamesAfterDelete)).not.toEqual(JSON.stringify(gamesBeforeDelete))
+                const platformAfterDelete = await findPlatform(game.platform)
+                const userGamesAfterDelete = await userGamesInDb()
+
+                userGamesWhichHaveTheGame = userGamesAfterDelete.filter(userGame => JSON.stringify(userGame.game) === JSON.stringify(game.id))
+
                 expect(gamesAfterDelete).toHaveLength(gamesBeforeDelete.length - 1)
-                expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(newGame))
-                expect(JSON.stringify(platformAfterDelete.games)).not.toContain(JSON.stringify(newGame.id))
+                expect(JSON.stringify(gamesAfterDelete)).not.toContain(JSON.stringify(game))
+                expect(JSON.stringify(platformAfterDelete.games)).not.toContain(JSON.stringify(game.id))
+                expect(userGamesWhichHaveTheGame).toHaveLength(0)
             })
     
             test('returns 404 if trying to delete a game matching a non-existing id', async () => {
