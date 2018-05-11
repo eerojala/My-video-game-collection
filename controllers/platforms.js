@@ -6,7 +6,7 @@ platformsRouter.get('/', async (request, response) => {
     try {
         const platforms = await Platform
             .find({})
-            .populate('games', { __v: 0, platform: 0 })
+            .populate('games', { __v: 0 })
 
         response.json(platforms.map(Platform.format))
     } catch (exception) {
@@ -19,7 +19,7 @@ platformsRouter.get('/:id', async (request, response) => {
     try {
         const platform = await Platform
             .findById(request.params.id)
-            .populate('games', { __v: 0, platform: 0 })
+            .populate('games', { __v: 0 })
 
         if (platform) {
             response.json(Platform.format(platform))
