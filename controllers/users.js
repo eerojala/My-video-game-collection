@@ -18,7 +18,13 @@ usersRouter.get('/:id', async (request, response) => {
     try {
         const user = await User
             .findById(request.params.id)
-            .populate('ownedGames', { __v: 0, user: 0 })
+            .populate({ 
+                path: 'ownedGames', select: { __v: 0, user: 0 }, populate: { 
+                    path: 'game', select: { __v: 0 }, populate: { 
+                        path: 'platform', select: { _id: 1, name: 1} 
+                    } 
+                } 
+            })
 
         if (user) {
             response.json(User.format(user))
