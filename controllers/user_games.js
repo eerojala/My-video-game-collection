@@ -10,6 +10,11 @@ userGamesRouter.get('/', async (request, response) => {
             .find({})
             .populate('user', { username: 1, _id: 1 })
             .populate('game', { name: 1 })
+            .populate({
+                path: 'game', select: { name: 1, platform: 1 }, populate: {
+                    path: 'platform', select: { name: 1, _id: 1 }
+                }
+            })
 
             response.json(userGames.map(UserGame.format))
     } catch (exception) {

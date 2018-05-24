@@ -5,16 +5,8 @@ const { print, hashPassword } = require('../utils/controller_helper')
 
 usersRouter.get('/', async (request, response) => {
     try {
-        const users = await User
-            .find({})
-            .populate({ 
-                path: 'ownedGames', select: { __v: 0, user: 0 }, populate: { 
-                    path: 'game', select: { __v: 0 }, populate: { 
-                        path: 'platform', select: { _id: 1, name: 1} 
-                    } 
-                } 
-            })
-
+        const users = await User .find({})
+        
         response.json(users.map(User.format))
     } catch (exception) {
         print(exception)
