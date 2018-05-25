@@ -9,7 +9,6 @@ userGamesRouter.get('/', async (request, response) => {
         const userGames = await UserGame
             .find({})
             .populate('user', { username: 1, _id: 1 })
-            .populate('game', { name: 1 })
             .populate({
                 path: 'game', select: { name: 1, platform: 1 }, populate: {
                     path: 'platform', select: { name: 1, _id: 1 }
@@ -20,6 +19,33 @@ userGamesRouter.get('/', async (request, response) => {
     } catch (exception) {
         print(exception)
         response.status(500).json({ error: 'Something went wrong...' })
+    }
+})
+
+userGamesRouter.get('/:id', async (request, response) => {
+    try {
+        const userGame = await UserGame
+            .findById(request.params.id)
+            .populate('user', { username: 1, _id: 1 })
+            .populate({
+                path: 'game', select: { name: 1, platform: 1 }, populate: {
+                    path: 'platform', select: { name: 1, _id: 1 }
+                }
+            })
+
+        if (userGame) {
+            response.json(UserGame.format(userGame))
+        } else {
+            response.status(404).end()
+        }
+    } catch (exception) {
+        print(exception)
+
+        if (exception.name === 'CastError') {
+            response.status(400).json({ error: 'Malformatted game id' })
+        } else {
+            response.status(500).json({ error: 'Something went wrong...' })
+        }
     }
 })
 
