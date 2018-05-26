@@ -218,7 +218,7 @@ describe('When there are initially some user game collection entries saved', asy
                 await invalidPostTest(noStatus)
             })
 
-            test('fails with non-integer score', async () => {
+            test('fails with non-integer number score', async () => {
                 const nonIntegerScore = Object.assign({ game: notOwnedGameIds[1] }, userGame)
                 nonIntegerScore.score = 2.5
 
