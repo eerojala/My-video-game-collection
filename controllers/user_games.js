@@ -76,6 +76,11 @@ userGamesRouter.post('/', async (request, response) => {
         }
 
         const userGame = Object.assign({user: loggedInUserId}, body)
+
+        if (isNaN(userGame.score)) {
+            userGame.score = undefined
+        }
+
         const newUserGame = new UserGame(userGame)
 
         const savedUserGame = await newUserGame.save()
@@ -109,7 +114,6 @@ userGamesRouter.put('/:id', async (request, response) => {
                 error: 'Must be logged in either as the user who owns the game or as an admin to update a game collection entry' 
             })
         }
-
         
         if (request.body.user || request.body.game) {
             return response.status(400).json({ error: 'You are not allowed to change the game or user of a game collection entry' })
@@ -117,6 +121,10 @@ userGamesRouter.put('/:id', async (request, response) => {
 
         const changesToUserGame = Object.assign({}, request.body)
         
+        if (isNaN(changesToUserGame.score)) {
+            changesToUserGame.score = undefined
+        }
+
         const updatedUserGame = await UserGame.findByIdAndUpdate(request.params.id, changesToUserGame, { new: true, runValidators: true })
 
         response.json(UserGame.format(updatedUserGame))
